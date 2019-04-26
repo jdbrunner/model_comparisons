@@ -10,11 +10,18 @@ Using publicly available data, we examine the ability of pairwise models and met
 
 This Repository:
 
-This repository contains a number of scripts and functions used to assess modeling strategies. \n
-estimate_parameters.py: Estimates model parameters from growth data.\n
+This repository contains a number of scripts and functions used to assess modeling strategies.
+
+estimate_parameters.py: Estimates model parameters from growth data.
+
 load_gore_results.py: load the results from growth experiments published in Friedman et al
+
 lv_pair_trio_functs.py: Contains most of the functions used, including to simulate deterministic and stochastic Lotka-Volterra, as well as to search for parameters.
+
 met_mediated_fitting.py: build a metabolite mediated model that matches growth experiment outcomes.
+
 non_add.py: Statistical arguments that community effects on growth rate are not pairwise additive.
+
 search_for_parameters.py: Carry out "full experiment" and "pair experiment".
+
 stochastic_model_analysis.py: Create realizations and run monte-carlo experiment on stochastic Lotka-Volterra.
