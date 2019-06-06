@@ -164,6 +164,31 @@ for pr in pair_task.index:
 pair_task['Xtalk'] = pair_model_outcomes
 pair_task#it worked
 
+
+
+
+
+model_net = pd.DataFrame(columns =['Source','Target','Wght','Stype','Etype'])
+for i in indx:
+    model_net = model_net.append(pd.DataFrame([[i,'Y1',-k1vals[i],'S',-1],['Y1',i,k1vals[i],'R1',1]],columns = ['Source','Target','Wght','Stype','Etype']))
+
+
+j = 2
+for pr in pair_models.index:
+    if pair_models.loc[[pr],'a'][0] !=0:
+        model_net = model_net.append(pd.DataFrame([[pr[0],'Y' + str(j),k1vals[pr[0]],'S',1]],columns = ['Source','Target','Wght','Stype','Etype']))
+    elif pair_models.loc[[pr],'b'][0] !=0:
+        model_net = model_net.append(pd.DataFrame([[pr[1],'Y' + str(j),k1vals[pr[1]],'S',1]],columns = ['Source','Target','Wght','Stype','Etype']))
+    if pair_models.loc[[pr],'k12'][0] !=0:
+        model_net = model_net.append(pd.DataFrame([[pr[0],'Y' + str(j),-abs(pair_models.loc[[pr],'k12'][0]) ,'S',-1],['Y' + str(j),pr[0],pair_models.loc[[pr],'k12'][0],'R2',np.sign(pair_models.loc[[pr],'k12'][0])]],columns = ['Source','Target','Wght','Stype','Etype']))
+    if pair_models.loc[[pr],'k22'][0] !=0:
+        model_net = model_net.append(pd.DataFrame([[pr[1],'Y' + str(j),-abs(pair_models.loc[[pr],'k22'][0]) ,'S',-1],['Y' + str(j),pr[1],pair_models.loc[[pr],'k22'][0],'R2',np.sign(pair_models.loc[[pr],'k22'][0])]],columns = ['Source','Target','Wght','Stype','Etype']))
+    j +=1
+
+
+model_net
+
+
 #next need to do the trios, which starts by finding out where we're at for all the trios without addind
 ## any XTalk. That is
 ### Model is
@@ -323,6 +348,8 @@ for tr in trio_model_outcomes.index:
 
 trio_model_outcomes['Needs'] = trio_tasks
 
+trio_model_outcomes
+
 sum(trio_tasks.values.astype('bool'))#### Number of fixes we need to impliment.
 
 
@@ -478,3 +505,30 @@ trio_model_outcomes
 # y5dt =  ks12*x1[t]*s2[t] - dd1*y5[t] - k25*x2[t]*y5[t] - k35*x3[t]*y5[t];
 
 ### our new parameters can be chosen k21 = 10, k212 = 10, k25 = 10, k35 = 10
+
+
+
+
+for tri in trio_models.index:
+    x1toy = trio_models.loc[[tri],'c3'][0]*trio_models.loc[[tri],'k12'][0] +trio_models.loc[[tri],'c2'][0]*trio_models.loc[[tri],'k13'][0]
+    x2toy = trio_models.loc[[tri],'c3'][0]*trio_models.loc[[tri],'k22'][0] +trio_models.loc[[tri],'c1'][0]*trio_models.loc[[tri],'k24'][0]
+    x3toy = trio_models.loc[[tri],'c2'][0]*trio_models.loc[[tri],'k33'][0] +trio_models.loc[[tri],'c1'][0]*trio_models.loc[[tri],'k34'][0]
+    model_net = model_net.append(pd.DataFrame([[tri[0],'Y'+str(j), x1toy, 'S',np.sign(x1toy)],[tri[1],'Y'+str(j), x2toy, 'S',np.sign(x2toy)],[tri[2],'Y'+str(j), x3toy, 'S',np.sign(x3toy)],['Y' + str(j),tri[0],trio_models.loc[[tri],'psi15'][0],'R3',np.sign(trio_models.loc[[tri],'psi15'][0])],['Y' + str(j),tri[1],trio_models.loc[[tri],'psi25'][0],'R3',np.sign(trio_models.loc[[tri],'psi25'][0])],['Y' + str(j),tri[2],trio_models.loc[[tri],'psi35'][0],'R3',np.sign(trio_models.loc[[tri],'psi35'][0])]],columns = ['Source','Target','Wght','Stype','Etype']))
+    j += 1
+
+
+
+
+sig_chaing = pd.DataFrame([['Pp','S1',k1vals['Pp'],'S',1],['Sm','S1',k1vals['Pp'],'S',-1],['Sm','Y' + str(j+1),10.0,'S',-1],['Sm','Y' + str(j),10.0,'S',1],['Pv','Y' + str(j),10.0,'S',-1],['Pv','Y' + str(j+1),10.0,'S',1],['Y'+str(j),'Pv',10.0,'R3',1],['Y'+str(j+1),'Sm',10.0,'R3',1],['S1','Sm',1,'Sg',0]],columns = ['Source','Target','Wght','Stype','Etype'])
+
+
+model_net = model_net.append(sig_chaing)
+
+j+=2
+
+sig2 = pd.DataFrame([['Pf','Y'+str(j),10.0,'S',1],['Pa','Y'+str(j),10.0,'S',-1],['Pa','S2',1.0,'S',1],['Pch','Y'+str(j),10.0,'S',-1],['Pa','S3',1.0,'S',1],['Pa','S2',1.0,'S',1],['Y' + str(j),'Pch',10,'R3',-1],['Y' + str(j),'Pa',10,'R3',-1],['S2','Pch',10,'Sg',0],['S3','Pf',10,'Sg',0]],columns = ['Source','Target','Wght','Stype','Etype'])
+
+
+model_net = model_net.append(sig2)
+
+model_net[model_net.Wght != 0].to_csv('modelnet.csv')

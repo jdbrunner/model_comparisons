@@ -45,7 +45,7 @@ from load_gore_results import *
 import sys
 
 
-nt = 10
+nt = 100
 
 mono_params = {}
 for i in mono_data.keys():
@@ -92,7 +92,7 @@ for ii in pair_data.keys():
 
 inter_params_dict = {}
 pair_outcome_dict = {}
-for k in pair_data_scld.keys():
+for k in pair_data_scld.keys():#our own parameter fitting
     spes = k.split('_')
     pars,ou = model_fit_wrapper(pair_data_scld[k], [mono_params_df.loc[spes[0],'r'], mono_params_df.loc[spes[1],'r']], numtris = nt)
     pair_outcome_dict[tuple(spes)] = '-'.join(np.array(spes)[~ou])
@@ -110,7 +110,7 @@ for pr in inter_params_dict.keys():
 
 
 show_me = False
-if show_me:
+if show_me:#plotting of system with fitted parameters
 
     rvals = pd.Series({'Ea':0.46, 'Pa':0.55,'Pch':0.18,'Pci':0.16,'Pf':0.25,'Pp':0.65,'Pv':0.57,'Sm':0.34})
     kvals = pd.Series({'Ea':0.13, 'Pa':0.07,'Pch':0.11,'Pci':0.01,'Pf':0.05,'Pp':0.14,'Pv':0.11,'Sm':0.15})
@@ -118,7 +118,7 @@ if show_me:
 
 
     indx = ['Ea','Pa','Pch','Pci','Pf','Pp','Pv','Sm']
-    inter = np.array([[1,0.69,1.09,0.55,1.53,0.82,1.09,0.72],[-0.18,1,2.44,-2.58,1.13,0.43,0.01,0.21],[-0.11,-0.8,1,-15.75,0.29,-0.04,-0.05,-0.03],[-0.32,0,0.18,1,-3.39,0,0.05,-0.3],[-0.02,0.28,1.2,0.83,1,0.01,0.07,-0.1],[0.87,1.58,1.24,0.24,1,1,1.01,0.84],[0.83,0.28,0.47,0,-0.02,0.79,1,0.7],[0.96,1.23,1.42,1.21,1.31,0.91,0.98,1]])
+    inter = np.array([[1,0.69,1.09,0.55,1.53,0.82,1.09,0.72],[-0.18,1,2.44,-2.58,1.13,0.43,0.01,0.21],[-0.11,-0.8,1,-15.75,0.29,-0.04,-0.05,-0.03],[-0.32,0,0.18,1,-3.39,0,0.05,-0.3],[-0.02,0.28,1.2,0.83,1,0.01,0.07,-0.1],[0.87,1.58,1.24,0.24,1,1,1.01,0.84],[0.83,0.28,0.47,0,-0.02,0.79,1,0.7],[0.96,1.23,1.42,1.21,1.31,0.91,0.98,1]])#Parameters reported in Friedman et al.
 
 
     interacts = pd.DataFrame(inter,index = indx,columns = indx)

@@ -33,6 +33,10 @@ from estimate_parameters import *
 
 
 
+
+
+
+
 #test the parameters we have:
 #From the paper:
 correct_bool_gore, pair_summary_gore, trio_summary_gore, glv_details_gore = test_params_LV(interacts_gore, mono_params_gore['K'], mono_params_gore['r'], real_outs, pair_outs_gore)
@@ -41,11 +45,7 @@ correct_bool_gore_pf, pair_summary_gore_pf, trio_summary_gore_pf, glv_details_go
 #From my own fitting
 correct_bool, pair_summary, trio_summary,glv_details = test_params_LV(interact_params, mono_params_df['K'], mono_params_df['r'],real_outs,pair_outs_fit)
 
-
-
-
-
-
+trio_summary.loc[[('Pv','Pf','Pci')]]
 
 ###To see how well each of the above did:
 #From the paper:
@@ -85,6 +85,7 @@ can_fix_df.index = pair_labels
 
 can_fix_df.to_pickle('pair_experiment')
 
+can_fix_df = pd.read_pickle('pair_experiment')
 
 import seaborn as sn
 

@@ -31,7 +31,7 @@ from lv_pair_trio_functs import *
 indx = ['Ea','Pa','Pch','Pci','Pf','Pp','Pv','Sm']
 species_names = {'Ea':'Enterobacter aerogenes', 'Pa':'Pseudomonas aurantiaca', 'Pch':'Pseudomonas chlororaphis','Pci':'Pseudomonas citronellolis', 'Pf':'Pseudomonas fluorescens','Pp':'Pseudomonas putida', 'Pv':'Pseudomonas veronii', 'Sm':'Serratia marcescens'}
 # Read and process the set of measured triplet outcomes from the paper.
-real_outs = pd.read_csv('gore_data/trio_outcomes.csv')
+real_outs = pd.read_csv('friedman_et_al_data/trio_outcomes.csv')
 real_outs.columns = list('ABCDEF')
 
 real_outs.drop(0,inplace = True)
@@ -100,8 +100,10 @@ for ind in pair_out_gore[pair_out_gore.LVRight == False].index:
 ##################### Timecourse Data
 #### Import the data from excel - each become a dict of DFs, which are multi-indexed
 #### with experiment number and time point number.
-mono_data = pd.read_excel('gore_data/monoculture_timeSeries.xlsx',sheet_name = None)
-pair_data = pd.read_excel('gore_data/pair_timeSeries.xlsx',sheet_name = None)
+mono_data = pd.read_excel('friedman_et_al_data/monoculture_timeSeries.xlsx',sheet_name = None,index_col = 0)
+pair_data = pd.read_excel('friedman_et_al_data/pair_timeSeries.xlsx',sheet_name = None,index_col = 0)
+
+
 
 
 for prdf in pair_data:
@@ -110,17 +112,20 @@ for prdf in pair_data:
     explist = list(it.chain(*[[j]*(whexps[j]-whexps[j-1]) for j in range(1,len(whexps))]))
     pair_data[prdf].set_index([explist,pair_data[prdf].index], inplace = True)
     pair_data[prdf].index.rename(['Experiment','Time'],inplace = True)
-trio_data = pd.read_excel('gore_data/trio_lastTransfer.xlsx',sheet_name = None)
+trio_data = pd.read_excel('friedman_et_al_data/trio_lastTransfer.xlsx',sheet_name = None,index_col = 0)
 for trdf in trio_data:
     trio_data[trdf].dropna(inplace = True)
     whexps = list(np.where(trio_data[trdf].index.get_loc(0))[0]) + [len(trio_data[trdf].index)]
     explist = list(it.chain(*[[j]*(whexps[j]-whexps[j-1]) for j in range(1,len(whexps))]))
     trio_data[trdf].set_index([explist,trio_data[trdf].index], inplace = True)
     trio_data[trdf].index.rename(['Experiment','Time'],inplace = True)
-groups_data = pd.read_excel('gore_data/7and8Species_lastTransfer.xlsx',sheet_name = None)
+groups_data = pd.read_excel('friedman_et_al_data/7and8Species_lastTransfer.xlsx',sheet_name = None,index_col = 0)
 for grpdf in groups_data:
     groups_data[grpdf].dropna(inplace = True)
     whexps = list(np.where(groups_data[grpdf].index.get_loc(0))[0]) + [len(groups_data[grpdf].index)]
     explist = list(it.chain(*[[j]*(whexps[j]-whexps[j-1]) for j in range(1,len(whexps))]))
     groups_data[grpdf].set_index([explist,groups_data[grpdf].index], inplace = True)
     groups_data[grpdf].index.rename(['Experiment','Time'],inplace = True)
+
+
+pair_outs_gore
