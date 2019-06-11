@@ -28,7 +28,7 @@ f1 = 1
 dst = 0.49
 
 #first - any big winners? Let's start with those.
-[(i,sum([(i in res and not '-' in res) for res in pair_outs_gore.Observed.values])) for i in indx]
+# [(i,sum([(i in res and not '-' in res) for res in pair_outs_gore.Observed.values])) for i in indx]
 
 k1ea = 1.359768499623295  ###some of these were randomly chosen - the ones that have more than 2 digits
 dea =  1.866050260587956
@@ -69,7 +69,7 @@ for pr in pair_outs_gore.index:
 
 pair_task = pair_outs_gore.copy()
 pair_task['NoXtalk'] = winner_nocross
-pair_task
+# pair_task
 needs = pd.Series(index = pair_task.index)
 for pr in pair_task.index:
     if pair_task.loc[[pr],'Observed'].values[0] == pair_task.loc[[pr],'NoXtalk'].values[0]:
@@ -132,8 +132,8 @@ pair_models['k12'] = k12col
 pair_models['k22'] = k22col
 
 # pair model parameters are here and in k1vals,dvals. k1vals give the ki1.
-pair_task
-pair_models
+# pair_task
+# pair_models
 #### Function to return the vector field for the pair model so we can run the thing
 def run_pair_mod(t,y,pars):
     [x1,x2,y1,y2] = y
@@ -162,31 +162,31 @@ for pr in pair_task.index:
     pair_model_outcomes[pr] = np.array(pr)[result[:2].round(10).astype('bool')]
 
 pair_task['Xtalk'] = pair_model_outcomes
-pair_task#it worked
+# pair_task#it worked
 
 
 
 
 
-model_net = pd.DataFrame(columns =['Source','Target','Wght','Stype','Etype'])
+model_net = pd.DataFrame(columns =['Source','Target','Wght','Stype','Qual'])
 for i in indx:
-    model_net = model_net.append(pd.DataFrame([[i,'Y1',-k1vals[i],'S',-1],['Y1',i,k1vals[i],'R1',1]],columns = ['Source','Target','Wght','Stype','Etype']))
+    model_net = model_net.append(pd.DataFrame([[i,'Y1',-k1vals[i],'S',-1],['Y1',i,k1vals[i],'R1',1]],columns = model_net.columns))
 
 
 j = 2
 for pr in pair_models.index:
     if pair_models.loc[[pr],'a'][0] !=0:
-        model_net = model_net.append(pd.DataFrame([[pr[0],'Y' + str(j),k1vals[pr[0]],'S',1]],columns = ['Source','Target','Wght','Stype','Etype']))
+        model_net = model_net.append(pd.DataFrame([[pr[0],'Y' + str(j),k1vals[pr[0]],'S',1]],columns = model_net.columns))
     elif pair_models.loc[[pr],'b'][0] !=0:
-        model_net = model_net.append(pd.DataFrame([[pr[1],'Y' + str(j),k1vals[pr[1]],'S',1]],columns = ['Source','Target','Wght','Stype','Etype']))
+        model_net = model_net.append(pd.DataFrame([[pr[1],'Y' + str(j),k1vals[pr[1]],'S',1]],columns = model_net.columns))
     if pair_models.loc[[pr],'k12'][0] !=0:
-        model_net = model_net.append(pd.DataFrame([[pr[0],'Y' + str(j),-abs(pair_models.loc[[pr],'k12'][0]) ,'S',-1],['Y' + str(j),pr[0],pair_models.loc[[pr],'k12'][0],'R2',np.sign(pair_models.loc[[pr],'k12'][0])]],columns = ['Source','Target','Wght','Stype','Etype']))
+        model_net = model_net.append(pd.DataFrame([[pr[0],'Y' + str(j),-abs(pair_models.loc[[pr],'k12'][0]) ,'S',-1],['Y' + str(j),pr[0],pair_models.loc[[pr],'k12'][0],'R2',np.sign(pair_models.loc[[pr],'k12'][0])]],columns = model_net.columns))
     if pair_models.loc[[pr],'k22'][0] !=0:
-        model_net = model_net.append(pd.DataFrame([[pr[1],'Y' + str(j),-abs(pair_models.loc[[pr],'k22'][0]) ,'S',-1],['Y' + str(j),pr[1],pair_models.loc[[pr],'k22'][0],'R2',np.sign(pair_models.loc[[pr],'k22'][0])]],columns = ['Source','Target','Wght','Stype','Etype']))
+        model_net = model_net.append(pd.DataFrame([[pr[1],'Y' + str(j),-abs(pair_models.loc[[pr],'k22'][0]) ,'S',-1],['Y' + str(j),pr[1],pair_models.loc[[pr],'k22'][0],'R2',np.sign(pair_models.loc[[pr],'k22'][0])]],columns = model_net.columns))
     j +=1
 
 
-model_net
+# model_net
 
 
 #next need to do the trios, which starts by finding out where we're at for all the trios without addind
@@ -348,9 +348,9 @@ for tr in trio_model_outcomes.index:
 
 trio_model_outcomes['Needs'] = trio_tasks
 
-trio_model_outcomes
-
-sum(trio_tasks.values.astype('bool'))#### Number of fixes we need to impliment.
+# trio_model_outcomes
+#
+# sum(trio_tasks.values.astype('bool'))#### Number of fixes we need to impliment.
 
 
 tsk_counts = pd.Series([sum(trio_tasks.values == ii) for ii in [13,23,12,22,32,11,21,31]], index = [13,23,12,22,32,11,21,31])
@@ -375,7 +375,7 @@ tsk_counts = pd.Series([sum(trio_tasks.values == ii) for ii in [13,23,12,22,32,1
 
 trio_models = trios_unadjusted.copy()
 
-trio_model_outcomes
+# trio_model_outcomes
 c1col = pd.Series(index = real_outs.index)
 c2col = pd.Series(index = real_outs.index)
 c3col = pd.Series(index = real_outs.index)
@@ -411,7 +411,6 @@ trio_models['psi15'] = psi15col
 trio_models['psi25'] = psi25col
 trio_models['psi35'] = psi35col
 
-trio_models.columns
 
 def run_trio_mod(t,y,parms):
     [x1,x2,x3,y1,y2,y3,y4,y5] = y
@@ -437,7 +436,6 @@ for tr in real_outs.index:
 
 
 trio_model_outcomes['WithXtalk'] = trio_model_outcomes_xtalk
-trio_model_outcomes
 
 
 trio_worked = pd.Series(index = trio_model_outcomes.index)
@@ -468,13 +466,13 @@ for tr in trio_model_outcomes.index:
 
 trio_model_outcomes['WorkedYN'] = trio_worked
 
-sum(trio_worked.values.astype('bool'))#### Number of fixes we need to impliment.
+# sum(trio_worked.values.astype('bool'))#### Number of fixes we need to impliment.
 
 
 tsk_counts = pd.Series([sum(trio_worked.values == ii) for ii in [13,23,12,22,32,11,21,31]], index = [13,23,12,22,32,11,21,31])
 
 
-trio_model_outcomes
+# trio_model_outcomes
 
 ##### There are two remaining trios to fix. (Pp,Sm,Pv) must go from lone survivor (Pp) to all three surviving
 ### This can be done with one signalling molecule from x1 to x2, then crossfeeding of x3 by x2 and x3 by x2.
@@ -513,22 +511,72 @@ for tri in trio_models.index:
     x1toy = trio_models.loc[[tri],'c3'][0]*trio_models.loc[[tri],'k12'][0] +trio_models.loc[[tri],'c2'][0]*trio_models.loc[[tri],'k13'][0]
     x2toy = trio_models.loc[[tri],'c3'][0]*trio_models.loc[[tri],'k22'][0] +trio_models.loc[[tri],'c1'][0]*trio_models.loc[[tri],'k24'][0]
     x3toy = trio_models.loc[[tri],'c2'][0]*trio_models.loc[[tri],'k33'][0] +trio_models.loc[[tri],'c1'][0]*trio_models.loc[[tri],'k34'][0]
-    model_net = model_net.append(pd.DataFrame([[tri[0],'Y'+str(j), x1toy, 'S',np.sign(x1toy)],[tri[1],'Y'+str(j), x2toy, 'S',np.sign(x2toy)],[tri[2],'Y'+str(j), x3toy, 'S',np.sign(x3toy)],['Y' + str(j),tri[0],trio_models.loc[[tri],'psi15'][0],'R3',np.sign(trio_models.loc[[tri],'psi15'][0])],['Y' + str(j),tri[1],trio_models.loc[[tri],'psi25'][0],'R3',np.sign(trio_models.loc[[tri],'psi25'][0])],['Y' + str(j),tri[2],trio_models.loc[[tri],'psi35'][0],'R3',np.sign(trio_models.loc[[tri],'psi35'][0])]],columns = ['Source','Target','Wght','Stype','Etype']))
+    model_net = model_net.append(pd.DataFrame([[tri[0],'Y'+str(j), x1toy, 'S',np.sign(x1toy)],[tri[1],'Y'+str(j), x2toy, 'S',np.sign(x2toy)],[tri[2],'Y'+str(j), x3toy, 'S',np.sign(x3toy)],['Y' + str(j),tri[0],trio_models.loc[[tri],'psi15'][0],'R3',np.sign(trio_models.loc[[tri],'psi15'][0])],['Y' + str(j),tri[1],trio_models.loc[[tri],'psi25'][0],'R3',np.sign(trio_models.loc[[tri],'psi25'][0])],['Y' + str(j),tri[2],trio_models.loc[[tri],'psi35'][0],'R3',np.sign(trio_models.loc[[tri],'psi35'][0])]],columns = model_net.columns))
     j += 1
 
 
 
 
-sig_chaing = pd.DataFrame([['Pp','S1',k1vals['Pp'],'S',1],['Sm','S1',k1vals['Pp'],'S',-1],['Sm','Y' + str(j+1),10.0,'S',-1],['Sm','Y' + str(j),10.0,'S',1],['Pv','Y' + str(j),10.0,'S',-1],['Pv','Y' + str(j+1),10.0,'S',1],['Y'+str(j),'Pv',10.0,'R3',1],['Y'+str(j+1),'Sm',10.0,'R3',1],['S1','Sm',1,'Sg',0]],columns = ['Source','Target','Wght','Stype','Etype'])
+sig_chaing = pd.DataFrame([['Pp','S1',k1vals['Pp'],'S',1],['Sm','S1',k1vals['Pp'],'S',-1],['Sm','Y' + str(j+1),10.0,'S',-1],['Sm','Y' + str(j),10.0,'S',1],['Pv','Y' + str(j),10.0,'S',-1],['Pv','Y' + str(j+1),10.0,'S',1],['Y'+str(j),'Pv',10.0,'R3',1],['Y'+str(j+1),'Sm',10.0,'R3',1],['S1','Sm',1,'Sg',0]],columns = model_net.columns)
 
 
 model_net = model_net.append(sig_chaing)
 
 j+=2
 
-sig2 = pd.DataFrame([['Pf','Y'+str(j),10.0,'S',1],['Pa','Y'+str(j),10.0,'S',-1],['Pa','S2',1.0,'S',1],['Pch','Y'+str(j),10.0,'S',-1],['Pa','S3',1.0,'S',1],['Pa','S2',1.0,'S',1],['Y' + str(j),'Pch',10,'R3',-1],['Y' + str(j),'Pa',10,'R3',-1],['S2','Pch',10,'Sg',0],['S3','Pf',10,'Sg',0]],columns = ['Source','Target','Wght','Stype','Etype'])
+sig2 = pd.DataFrame([['Pf','Y'+str(j),10.0,'S',1],['Pa','Y'+str(j),10.0,'S',-1],['Pa','S2',1.0,'S',1],['Pch','Y'+str(j),10.0,'S',-1],['Pa','S3',1.0,'S',1],['Pa','S2',1.0,'S',1],['Y' + str(j),'Pch',10,'R3',-1],['Y' + str(j),'Pa',10,'R3',-1],['S2','Pch',10,'Sg',0],['S3','Pf',10,'Sg',0]],columns = model_net.columns)
 
 
 model_net = model_net.append(sig2)
 
+
+model_net.loc[:,'AbsWeight'] = abs(model_net.loc[:,'Wght'])
+
+
 model_net[model_net.Wght != 0].to_csv('modelnet.csv')
+
+
+
+print_pairm = pd.DataFrame(columns = ['Sp1','Sp2','k12','k22'], index = pair_models.index)
+
+print_pairm.loc[:,['k12','k22']]= pair_models.loc[:,['k12','k22']].round(3)
+
+for ind in print_pairm.index:
+    print_pairm.loc[ind,'Sp1'] = ind[0]
+    print_pairm.loc[ind,'Sp2'] = ind[1]
+
+
+
+
+print_pairm.index = [ ' \& '.join(ind) for ind in print_pairm.index]
+print_pairm.columns = ['Sp1','Sp2','$\kappa_p^{Sp1}$','$\kappa_p^{Sp2}$']
+
+
+
+print_pairm.to_csv('pair_metabolites.csv')
+
+
+
+k1s = pd.DataFrame.from_dict(k1vals, orient = 'index')
+
+k1s.columns = ['$k_{1i}$']
+k1s.round(3).T.to_csv('k1vals.csv')
+
+d1s = pd.DataFrame.from_dict(dvals, orient = 'index')
+d1s.columns = ['$d_i$']
+d1s.round(3).T.to_csv('dvals.csv')
+
+
+print_trios = pd.DataFrame(columns = ['Sp1','Sp2','Sp3','$\psi_{t}^{Sp1}$','$\psi_{t}^{Sp2}$','$\psi_{t}^{Sp3}$'], index = [' \& '.join(ind) for ind in trio_models.index])
+
+
+for ind in trio_models.index:
+    print_trios.loc[' \& '.join(ind),'Sp1'] = ind[0]
+    print_trios.loc[' \& '.join(ind),'Sp2'] = ind[1]
+    print_trios.loc[' \& '.join(ind),'Sp3'] = ind[2]
+    print_trios.loc[' \& '.join(ind),'$\psi_{t}^{Sp1}$'] = trio_models.loc[[ind],'psi15'][0]
+    print_trios.loc[' \& '.join(ind),'$\psi_{t}^{Sp2}$'] = trio_models.loc[[ind],'psi25'][0]
+    print_trios.loc[' \& '.join(ind),'$\psi_{t}^{Sp3}$'] = trio_models.loc[[ind],'psi35'][0]
+
+
+print_trios.to_csv('trio_metabolites.csv')

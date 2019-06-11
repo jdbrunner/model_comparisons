@@ -145,7 +145,7 @@ for ind in avg_growth_pair.index:
     rw = [ab_grth.loc[spa],ac_grth.loc[spa],ab_grth.loc[spb],bc_grth.loc[spb],ac_grth.loc[spc],bc_grth.loc[spc]]
     avg_growth_pair.loc[ind] = rw
 
-avg_growth_pair
+
 
 species_nm_df = pd.DataFrame(index = exp_index, columns = ['Species_A','Species_B','Species_C'])
 for ind in species_nm_df.index:
@@ -158,8 +158,6 @@ avg_experimental_growth.index = range(len(avg_experimental_growth))
 did_add_yn_exp = pd.DataFrame(columns = ['Species 1','Species 2','Species 3','Change species 1','Change species 2','Change species 3'])
 did_add_yn_exp_pic = pd.DataFrame(columns = [r'\Huge $e_{1|23}$',r'\Huge $e_{2|13}$',r'\Huge $e_{3|12}$'])
 
-
-avg_experimental_growth
 
 def delg(trio_rw):
     comps = np.array([[trio_rw.A_Together-trio_rw.A_Alone,0,trio_rw.A_with_B-trio_rw.A_Alone,trio_rw.A_with_C- trio_rw.A_Alone],[trio_rw.B_Together-trio_rw.B_Alone,trio_rw.B_with_A-trio_rw.B_Alone,0,trio_rw.B_with_C- trio_rw.B_Alone],[trio_rw.C_Together-trio_rw.C_Alone,trio_rw.C_with_A-trio_rw.C_Alone,trio_rw.C_with_B- trio_rw.C_Alone,0]])
@@ -203,3 +201,22 @@ delg(avg_experimental_growth.loc[26])
 delg(avg_experimental_growth.loc[0])
 
 len(avg_experimental_growth)
+avg_experimental_growth
+
+
+len(kylipair)
+
+
+avg_growth_pair_data(pair_data[kylipair[0]])['Ea'] -avg_growth_mono_data(mono_data['Ea'])
+
+
+estimated_interactions = pd.DataFrame(columns = ['Source','Target','Wght','Qual','AbsWeight'])
+for pr in kylipair:
+    prl = pr.split('_')
+    pair_grth = avg_growth_pair_data(pair_data[pr])
+    sp1g = avg_growth_mono_data(mono_data[prl[0]])
+    sp2g = avg_growth_mono_data(mono_data[prl[1]])
+    estimated_interactions = estimated_interactions.append(pd.DataFrame([[prl[0],prl[1],pair_grth[prl[0]]-sp1g,np.sign(pair_grth[prl[0]]-sp1g),abs(pair_grth[prl[0]]-sp1g)],[prl[1],prl[0],pair_grth[prl[1]]-sp2g,np.sign(pair_grth[prl[1]]-sp2g),abs(pair_grth[prl[1]]-sp2g)]], columns = estimated_interactions.columns))
+
+
+estimated_interactions.to_csv('estimated.csv')
