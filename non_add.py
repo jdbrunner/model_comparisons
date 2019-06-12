@@ -56,7 +56,6 @@ from load_gore_results import *
 
 exp_index = list(real_outs.index)
 
-pair_data
 
 
 
@@ -168,14 +167,23 @@ def delg(trio_rw):
 
 
 def delg2(trio_rw):
-    comps = np.array([[trio_rw.A_Together-trio_rw.A_Alone,trio_rw.A_with_B-trio_rw.A_Alone,trio_rw.A_with_C- trio_rw.A_Alone],[trio_rw.B_Together-trio_rw.B_Alone,trio_rw.B_with_A-trio_rw.B_Alone,trio_rw.B_with_C- trio_rw.B_Alone],[trio_rw.C_Together-trio_rw.C_Alone,trio_rw.C_with_A-trio_rw.C_Alone,trio_rw.C_with_B- trio_rw.C_Alone]])
+    comps = np.array([[trio_rw.A_Together-trio_rw.A_Alone,0,trio_rw.A_with_B-trio_rw.A_Alone,trio_rw.A_with_C- trio_rw.A_Alone],[trio_rw.B_Together-trio_rw.B_Alone,trio_rw.B_with_A-trio_rw.B_Alone,0,trio_rw.B_with_C- trio_rw.B_Alone],[trio_rw.C_Together-trio_rw.C_Alone,trio_rw.C_with_A-trio_rw.C_Alone,trio_rw.C_with_B- trio_rw.C_Alone,0]])
     all_3 = trio_rw.Species_A + 'x' + trio_rw.Species_B + 'x' + trio_rw.Species_C
-    return pd.DataFrame(comps,index = [trio_rw.Species_A,trio_rw.Species_B,trio_rw.Species_C], columns = ['w/Both', 'w/1' , 'w/2' ])
+    labs_tub = [(all_3, trio_rw.Species_A), (all_3,trio_rw.Species_B),(all_3, trio_rw.Species_C)]
+    index = pd.MultiIndex.from_tuples(labs_tub, names=['Trio', 'Microbe'])
+    return pd.DataFrame(comps,index = index, columns = ['w/Both', 'w/1', 'w/2','w/3'])
 
-deltags = delg(avg_experimental_growth.loc[0])
-for grw in avg_experimental_growth.index[1:]:
-    deltags = deltags.append(delg(avg_experimental_growth.loc[grw]))
+deltags = {}
+for grw in avg_experimental_growth.index:
+    deltags[grw] = delg(avg_experimental_growth.loc[grw])
 
+
+
+for grw in avg_experimental_growth.index:
+     delg(avg_experimental_growth.loc[grw]).to_csv('qualitative.csv',mode='a+')
+     fl = open('qualitative.csv','a+')
+     fl.write('\n')
+     fl.close()
 
 
 prob_list = {}
@@ -189,25 +197,13 @@ for grw in avg_experimental_growth.index:
             yn = (df.loc[sp,'w/1'] > 0 and df.loc[sp,'w/2'] >0)
         if yn:
             prob_list[grw] = df
+            delg(avg_experimental_growth.loc[grw]).to_csv('reversals.csv',mode='a+')
+            fl = open('reversals.csv','a+')
+            fl.write('\n')
+            fl.close()
             break
 
 
-len(prob_list)
-
-
-prob_list.keys()
-
-delg(avg_experimental_growth.loc[26])
-delg(avg_experimental_growth.loc[0])
-
-len(avg_experimental_growth)
-avg_experimental_growth
-
-
-len(kylipair)
-
-
-avg_growth_pair_data(pair_data[kylipair[0]])['Ea'] -avg_growth_mono_data(mono_data['Ea'])
 
 
 estimated_interactions = pd.DataFrame(columns = ['Source','Target','Wght','Qual','AbsWeight'])
