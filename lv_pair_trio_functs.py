@@ -1201,10 +1201,9 @@ def find_full_sol(paramers,kvals,rvals,trio_outcomes,pair_outcomes, fix_prs, max
 
 ######### For estimating parameters:
 ##Compute value of logistic curve
-def logistic_fun(T,r,C):
+def logistic_fun(t,x0,r,C):
     '''This is the solution to the logistic equations dx/dt = rx(1-x).
     Dependency: numpy'''
-    t,x0 = T
     return x0*(C+1)/(1+C*np.exp(-r*t))
 
 ##Fit to logistic curve
@@ -1221,7 +1220,7 @@ def logistic_fit(data_df):
     x = x[~rmv_start]
     x1s = y_data[x==1]
     xzero = np.mean(x1s)
-    logi_f = curve_fit(logistic_fun,(x,xzero),y_data)
+    logi_f = curve_fit(logistic_fun,x,y_data,bounds=([xzero, -np.inf, -np.inf], [xzero+10**(-5), np.inf, np.inf]))
     r = logi_f[0][0]
     k = np.mean(x1s)*(1 + logi_f[0][1])
     return [r,k]
@@ -1236,7 +1235,7 @@ def logistic_fit_nolag(data_df):
     y_data = y_data[~rmv_pts]
     x = x[~rmv_pts]
     xzero = np.mean(y_data[x == 0])
-    logi_f = curve_fit(logistic_fun,(x,xzero),y_data)
+    logi_f = curve_fit(logistic_fun,x,y_data,bounds=([xzero, -np.inf, -np.inf], [xzero+10**(-5), np.inf, np.inf]))
     r = logi_f[0][0]
     k = xzero*(1 + logi_f[0][1])
     return [r,k]
@@ -1355,54 +1354,6 @@ def model_fit_wrapper(pair_df, rvals, stime = 1, numtris = 1):
     return fit, np.array([extinction_1,extinction_2])
 
 
-############ Monte Carlo experiments
-##Monte Carlo for the probability of the "fixed points" of a pair
-# def extinction_prob_pair(pair,inter_params,rvals,x0 ='ran',endt=5,numsims = 10,vol = 100):
-#     '''For a pair, use MC simulation to find the probability that one pair member would go extinct
-#     Dependency: numpy, make_k_pair,numpy.random,gillep'''
-#     two_spec_sources = np.array([[1,0],[2,0],[0,1],[0,2],[1,1],[1,1],[1,1],[1,1]])
-#     two_spec_prodcts = np.array([[2,0],[1,0],[0,2],[0,1],[2,1],[0,1],[1,2],[1,0]])
-#     ks = make_k_pair(inter_params,rvals, pair)
-#     pair_ar = np.array(pair)
-#     resuls = {'ded':0,pair_ar[0]:0,pair_ar[1]:0,'-'.join(pair_ar):0}
-#     for n in range(numsims):
-#         if x0 == 'ran':
-#             xzero = rand(2)
-#         else:
-#             xzero = x0
-#         end_val = gillep(two_spec_sources,two_spec_prodcts,ks,xzero,endt,N = vol,wholthing = False)
-#         sstate = end_val != 0
-#         sstate_key = '-'.join(pair_ar[sstate])
-#         if sstate_key != '':
-#             resuls[sstate_key] += 1
-#         else:
-#             resuls['ded'] += 1
-#     resuls.update((x,y/numsims) for x,y in resuls.items())
-#     return resuls
-
-##Monte Carlo for the probability of the "fixed points" of a pair, using tau leaping
-# def extinction_prob_pair_tl_old(pair,inter_params,rvals,x0 ='ran',endt=5,numsims = 10,vol = 100):
-#     '''For a pair, use MC simulation to find the probability that one pair member would go extinct, using approximate simulation
-#     Dependency: numpy, make_k_pair,numpy.random,tau_postleap_anderson'''
-#     two_spec_sources = np.array([[1,0],[2,0],[0,1],[0,2],[1,1],[1,1],[1,1],[1,1]])
-#     two_spec_prodcts = np.array([[2,0],[1,0],[0,2],[0,1],[2,1],[0,1],[1,2],[1,0]])
-#     ks = make_k_pair(inter_params,rvals, pair)
-#     pair_ar = np.array(pair)
-#     resuls = {'ded':0,pair_ar[0]:0,pair_ar[1]:0,'-'.join(pair_ar):0}
-#     for n in range(numsims):
-#         if x0 == 'ran':
-#             xzero = rand(2)
-#         else:
-#             xzero = x0
-#         end_val = tau_postleap_anderson(two_spec_sources,two_spec_prodcts,ks,xzero,endt,N = vol)
-#         sstate = end_val != 0
-#         sstate_key = '-'.join(pair_ar[sstate])
-#         if sstate_key != '':
-#             resuls[sstate_key] += 1
-#         else:
-#             resuls['ded'] += 1
-#     resuls.update((x,y/numsims) for x,y in resuls.items())
-#     return resuls
 
 ##Monte Carlo for the probability of the "fixed points" of a pair, using tau leaping & parallelization
 def extinction_prob_pair_tl(pair,inter_params,rvals,x0 ='ran',endt=5,maxsims = 100,vol = 100,lftover=2):
@@ -1434,53 +1385,6 @@ def extinction_prob_pair_tl(pair,inter_params,rvals,x0 ='ran',endt=5,maxsims = 1
 
 
 
-##Monte Carlo for the probability of the "fixed points" of a trio
-# def extinction_prob_trio(trio,inter_params,rvals,x0 ='ran',endt=5,numsims = 10,vol = 100):
-#     '''For a trio, use MC simulation to find the probability that one pair member would go extinct
-#     Dependency: numpy, make_k_trio,numpy.random,gillep'''
-#     three_spec_sources = np.array([[1,0,0],[2,0,0],[0,1,0],[0,2,0],[0,0,1],[0,0,2],[1,1,0],[1,1,0],[1,0,1],[1,0,1],[1,1,0],[1,1,0],[0,1,1],[0,1,1],[1,0,1],[1,0,1],[0,1,1],[0,1,1]])
-#     three_spec_prodcts = np.array([[2,0,0],[1,0,0],[0,2,0],[0,1,0],[0,0,2],[0,0,1],[2,1,0],[0,1,0],[2,0,1],[0,0,1],[1,2,0],[1,0,0],[0,2,1],[0,0,1],[1,0,2],[1,0,0],[0,1,2],[0,1,0]])
-#     ks = make_k_trio(inter_params,rvals, trio)
-#     trio_ar = np.array(trio)
-#     resuls = {'ded':0,trio_ar[0]:0,trio_ar[1]:0,trio_ar[2]:0,'-'.join(trio_ar[[0,1]]):0,'-'.join(trio_ar[[0,2]]):0,'-'.join(trio_ar[[1,2]]):0,'-'.join(trio_ar):0}
-#     for n in range(numsims):
-#         if x0 == 'ran':
-#             xzero = rand(3)
-#         else:
-#             xzero = x0
-#         end_val = gillep(three_spec_sources,three_spec_prodcts,ks,xzero,endt,N = vol,wholthing = False)
-#         sstate = end_val != 0
-#         sstate_key = '-'.join(trio_ar[sstate])
-#         if sstate_key != '':
-#             resuls[sstate_key] += 1
-#         else:
-#             resuls['ded'] += 1
-#     resuls.update((x,y/numsims) for x,y in resuls.items())
-#     return resuls
-
-##Monte Carlo for the probability of the "fixed points" of a trio, using tau leaping
-# def extinction_prob_trio_tl(trio,inter_params,rvals,x0 ='ran',endt=5,numsims = 10,vol = 100):
-#     '''For a trio, use MC simulation to find the probability that one pair member would go extinct using approximate simulation
-#     Dependency: numpy, make_k_trio,numpy.random,tau_postleap_anderson'''
-#     three_spec_sources = np.array([[1,0,0],[2,0,0],[0,1,0],[0,2,0],[0,0,1],[0,0,2],[1,1,0],[1,1,0],[1,0,1],[1,0,1],[1,1,0],[1,1,0],[0,1,1],[0,1,1],[1,0,1],[1,0,1],[0,1,1],[0,1,1]])
-#     three_spec_prodcts = np.array([[2,0,0],[1,0,0],[0,2,0],[0,1,0],[0,0,2],[0,0,1],[2,1,0],[0,1,0],[2,0,1],[0,0,1],[1,2,0],[1,0,0],[0,2,1],[0,0,1],[1,0,2],[1,0,0],[0,1,2],[0,1,0]])
-#     ks = make_k_trio(inter_params,rvals, trio)
-#     trio_ar = np.array(trio)
-#     resuls = {'ded':0,trio_ar[0]:0,trio_ar[1]:0,trio_ar[2]:0,'-'.join(trio_ar[[0,1]]):0,'-'.join(trio_ar[[0,2]]):0,'-'.join(trio_ar[[1,2]]):0,'-'.join(trio_ar):0}
-#     for n in range(numsims):
-#         if x0 == 'ran':
-#             xzero = rand(3)
-#         else:
-#             xzero = x0
-#         end_val = tau_postleap_anderson(three_spec_sources,three_spec_prodcts,ks,xzero,endt,N = vol)
-#         sstate = end_val != 0
-#         sstate_key = '-'.join(trio_ar[sstate])
-#         if sstate_key != '':
-#             resuls[sstate_key] += 1
-#         else:
-#             resuls['ded'] += 1
-#     resuls.update((x,y/numsims) for x,y in resuls.items())
-#     return resuls
 
 ##Monte Carlo for the probability of the "fixed points" of a trio, using tau leaping & parallelization
 def extinction_prob_trio_tl(trio,inter_params,rvals,x0 ='ran',endt=5,maxsims = 100,vol = 100,lftover=2):

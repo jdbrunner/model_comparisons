@@ -63,9 +63,6 @@ pair_problems.sort_values(inplace = True, ascending = False)
 
 #iterating through all pairs, try to fix the pair without changing the pair's internal parameters.
 fix_them = fix_all_pairs_gen(pair_problems,interact_params,mono_params_df['K'],mono_params_df['r'],pair_summary,trio_summary, how_long_to_wait = 360)
-can_fix = {}
-for ky in fix_them[0].keys():
-    can_fix[ky] = sum(list(it.chain(fix_them[0][ky].values())))/len(fix_them[0][ky].values())
 
 
 
@@ -78,96 +75,37 @@ correct_bool_searched, pair_summary_searched, trio_summary_searched,glv_details_
 s4 = len(trio_summary_searched[trio_summary_searched.gLVRight == True])/len(trio_summary_searched)
 
 
-
-can_fix_df = pd.DataFrame.from_dict(can_fix, columns = ['Propotion Fixable'], orient = 'index')
-pair_labels = [sp[0]+', '+sp[1] for sp in can_fix_df.index]
-can_fix_df.index = pair_labels
-
-can_fix_df.to_pickle('pair_experiment')
-
-can_fix_df = pd.read_pickle('pair_experiment')
-
-import seaborn as sn
-
-sn.set(font_scale=2)
-fix_fig1,fix_ax1 = plt.subplots(1,1,figsize = (20,2))
-fix_ax1.tick_params(labelsize = 13)
-sn.heatmap(can_fix_df.iloc[:14].T, annot = True, ax = fix_ax1, cbar = False, linewidths = 0.1, linecolor = 'white', yticklabels = False, cmap = 'YlGnBu', vmin = 0, vmax = 1)
-fix_fig1.tight_layout()
-fix_fig1.savefig('../search_result1')
-fix_fig2,fix_ax2 = plt.subplots(1,1,figsize = (20,2))
-fix_ax2.tick_params(labelsize = 13)
-sn.heatmap(can_fix_df.iloc[14:].T, annot = True, ax = fix_ax2, cbar = False, linewidths = 0.1, linecolor = 'white', yticklabels = False, cmap = 'YlGnBu', vmin = 0, vmax = 1)
-fix_fig2.tight_layout()
-fix_fig2.savefig('../search_result2')
-###################
-
-pair_data_scld2 = {}
-for ii in pair_data.keys():
-    pair_data_scld2[ii] = pair_data[ii].copy()
-    spes = ii.split('_')
-    pair_data_scld2[ii].loc[:,spes[0]] = pair_data_scld2[ii].loc[:,spes[0]]/mono_params_gore.loc[spes[0],'K']
-    pair_data_scld2[ii].loc[:,spes[1]] = pair_data_scld2[ii].loc[:,spes[1]]/mono_params_gore.loc[spes[1],'K']
+print('Proportion of Correct Trios:')
+print('From Friedman et al:', s1)
+print('From Friedman et al, with pairs corrected:', s2)
+print('From new parameter fitting:', s3)
+print('From computational search:',s4)
 
 
+pair_exp = False
+if pair_exp:
+    can_fix = {}
+    for ky in fix_them[0].keys():
+        can_fix[ky] = sum(list(it.chain(fix_them[0][ky].values())))/len(fix_them[0][ky].values())
 
-for i in pair_data.keys():
-    fig, axs = plt.subplots(1,4, figsize = (45,15),tight_layout = True)
-    fig.suptitle(i,fontsize=30)
-    spes = i.split('_')
-    inits1 = pair_data_scld2[i].loc[1].loc[0,:].values
-    inits2 = pair_data_scld[i].loc[1].loc[0,:].values
-    # axs[0,0].set_title('Parameters from Friedman, Higgens, & Gore (2017)')
-    # axs[0,1].set_title('Parameters from Friedman, Higgens, & Gore (2017)')
-    # axs[1,0].set_title('Parameters from Friedman, Higgens, & Gore (2017)')
-    # axs[1,1].set_title('Parameters from Friedman, Higgens, & Gore (2017)')
-    axs[0].set_title('State Space')
-    axs[2].set_title('State Space')
-    axs[1].set_title('Time Course')
-    axs[3].set_title('Time Course')
-    for j in pair_data_scld2[i].index.levels[0]:
-        # if all(pair_data_scld2[i].loc[j].loc[0,:].values == inits1):
-        #     ax1 = axs[0,0]
-        #     ax2 = axs[1,0]
-        # else:
-        #     ax1 = axs[0,1]
-        #     ax2 = axs[1,1]
-        # ax1.plot(pair_data_scld2[i].loc[j].loc[:,spes[0]],pair_data_scld2[i].loc[j].loc[:,spes[1]], 'bx')
-        # pair_data_scld2[i].loc[j].loc[:,spes[0]].plot(style = 'rx', ax = ax2)
-        # pair_data_scld2[i].loc[j].loc[:,spes[1]].plot(style = 'gx', ax = ax2)
-        # sols,times  = solve_vode(twospec_num,[[mono_params_gore.loc[spes[0],'r'],mono_params_gore.loc[spes[1],'r']],[interacts_gore.loc[spes[0],spes[1]],interacts_gore.loc[spes[1],spes[0]]]],pair_data_scld2[i].loc[j].loc[0,:].values,5)
-        # ax2.plot(times,sols[:,0],color = 'r')
-        # ax2.plot(times,sols[:,1], color = 'g')
-        # ax1.plot(sols[:,0],sols[:,1],color = 'b')
-        # ax1.set_xlabel('')
-        # ax2.set_xlabel('')
-        if all(pair_data_scld[i].loc[j].loc[0,:].values == inits2):
-            ax3 = axs[0]
-            ax4 = axs[1]
-        else:
-            ax3 = axs[2]
-            ax4 = axs[3]
-        pair_data_scld[i].loc[j].loc[:,spes[0]].plot(style = 'rx', ax = ax4,markersize=12)
-        pair_data_scld[i].loc[j].loc[:,spes[1]].plot(style = 'bx', ax = ax4,markersize=12)
-        ax3.plot(pair_data_scld[i].loc[j].loc[:,spes[0]],pair_data_scld[i].loc[j].loc[:,spes[1]],'bx',linewidth=2, markersize=12)
-        sols2,times2  = solve_vode(twospec_num,[[mono_params_df.loc[spes[0],'r'], mono_params_df.loc[spes[1],'r']],inter_params_dict[tuple(spes)]],pair_data_scld[i].loc[j].loc[1,:].values,5,t0 = 1)
-        ax4.plot(times2,sols2[:,0],color = 'r',linewidth=4, markersize=12)
-        ax4.plot(times2,sols2[:,1], color = 'b',linewidth=4, markersize=12)
-        ax3.plot(sols2[:,0],sols2[:,1],color = 'b',linewidth=4, markersize=12)
-        ax3.set_xlabel('')
-        ax4.set_xlabel('')
-    fig.savefig('../parameter_fit_plots/'+i+'row')
+    can_fix_df = pd.DataFrame.from_dict(can_fix, columns = ['Propotion Fixable'], orient = 'index')
+    pair_labels = [sp[0]+', '+sp[1] for sp in can_fix_df.index]
+    can_fix_df.index = pair_labels
 
+    can_fix_df.to_pickle('pair_experiment')
 
+    # can_fix_df = pd.read_pickle('pair_experiment')
 
-for spes in real_outs.index:
-    rxnrates = make_k_trio(interact_params,mono_params_df['r'],spes)
-    x0 = rand(3)
-    endt = 100
-    sols,times  = solve_vode(tthreespec_num,[[mono_params_df.loc[spes[0],'r'],mono_params_df.loc[spes[1],'r'],mono_params_df.loc[spes[2],'r']],[interact_params.loc[spes[0],spes[1]],interact_params.loc[spes[0],spes[2]],interact_params.loc[spes[1],spes[0]],interact_params.loc[spes[1],spes[2]],interact_params.loc[spes[2],spes[0]],interact_params.loc[spes[2],spes[1]]]],x0,endt)
-    realiz_fig,realiz_ax = plt.subplots(1,1,figsize = (15,15))
-    realiz_fig.suptitle(spes, fontsize = 30)
-    realiz_ax.set_title('Parameters Fitted to Pairs')
-    realiz_ax.plot(times,sols[:,0],'r',times,sols[:,1], 'b',times,sols[:,2],'g',linewidth=4,)
-    realiz_ax.legend(spes, fontsize = 40)
-    realiz_fig.savefig('../parameter_fit_plots/'+'_'.join(spes))
+    import seaborn as sn
+
+    sn.set(font_scale=2)
+    fix_fig1,fix_ax1 = plt.subplots(1,1,figsize = (20,2))
+    fix_ax1.tick_params(labelsize = 13)
+    sn.heatmap(can_fix_df.iloc[:14].T, annot = True, ax = fix_ax1, cbar = False, linewidths = 0.1, linecolor = 'white', yticklabels = False, cmap = 'YlGnBu', vmin = 0, vmax = 1)
+    fix_fig1.tight_layout()
+    fix_fig1.savefig('../search_result1')
+    fix_fig2,fix_ax2 = plt.subplots(1,1,figsize = (20,2))
+    fix_ax2.tick_params(labelsize = 13)
+    sn.heatmap(can_fix_df.iloc[14:].T, annot = True, ax = fix_ax2, cbar = False, linewidths = 0.1, linecolor = 'white', yticklabels = False, cmap = 'YlGnBu', vmin = 0, vmax = 1)
+    fix_fig2.tight_layout()
+    fix_fig2.savefig('../search_result2')

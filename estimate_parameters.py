@@ -109,6 +109,17 @@ for pr in inter_params_dict.keys():
     interact_params.loc[pr[1],pr[0]] = inter_params_dict[pr][1]
 
 
+#Creates a DataFrame with estimated single species parameters (mono_params_df)
+#Creates a dictionary with pair data scaled by carrying capacity (pair_data_scld)
+#Creates a dataframe with pair outcomes according to model fitting (pair_outs_fit)
+#Creates a dataframe of fit pairwise interaction parameters (interact_params)
+mono_params_df.to_csv('mono_parameters_n.csv')
+pair_outs_fit.to_csv('pair_outcomes_n.csv')
+interact_params.to_csv('lotka_volterra_fitted_n.csv')
+
+
+
+
 show_me = False
 if show_me:#plotting of system with fitted parameters
 
