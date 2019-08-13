@@ -15,6 +15,44 @@ import warnings
 import scipy.special as scm
 import multiprocessing as mp
 import joblib as jb
+# import os
+# import sys
+# import contextlib
+
+from contextlib import redirect_stdout
+
+
+# def fileno(file_or_fd):
+#     fd = getattr(file_or_fd, 'fileno', lambda: file_or_fd)()
+#     if not isinstance(fd, int):
+#         raise ValueError("Expected a file (`.fileno()`) or a file descriptor")
+#     return fd
+#
+# @contextlib.contextmanager
+# def stdout_redirected(to=os.devnull, stdout=None):
+#     """
+#     https://stackoverflow.com/a/22434262/190597 (J.F. Sebastian)
+#     """
+#     if stdout is None:
+#        stdout = sys.stdout
+#
+#     stdout_fd = fileno(stdout)
+#     # copy stdout_fd before it is overwritten
+#     #NOTE: `copied` is inheritable on Windows when duplicating a standard stream
+#     with os.fdopen(os.dup(stdout_fd), 'wb') as copied:
+#         stdout.flush()  # flush library buffers that dup2 knows nothing about
+#         try:
+#             os.dup2(fileno(to), stdout_fd)  # $ exec >&to
+#         except ValueError:  # filename
+#             with open(to, 'wb') as to_file:
+#                 os.dup2(to_file.fileno(), stdout_fd)  # $ exec > to
+#         try:
+#             yield stdout # allow code to be run with the redirected stdout
+#         finally:
+#             # restore stdout to its previous value
+#             #NOTE: dup2 makes stdout_fd inheritable unconditionally
+#             stdout.flush()
+#             os.dup2(copied.fileno(), stdout_fd)  # $ exec >&copied
 
 ########## Numerically simulating the models (deterministic)
 #compute RHS of 2 species model
@@ -59,24 +97,26 @@ def solve_vode(func,f_params,init_condit,endtime,jaco = None, jacargs = None, t0
     # while sl.successful() and sl.t < endtime:
     #     solu = solu + [sl.integrate(sl.t + dt)]
     #     rt = rt + [sl.t]
-    with warnings.catch_warnings(record=True) as w:
-    # Cause all warnings to always be errors.
-        warnings.simplefilter('error')
-        while sl.successful() and sl.t < endtime:
-            try:
-                solu = solu + [sl.integrate(sl.t + dt)]
-                rt = rt + [sl.t]
-            except UserWarning:
-                if methd == 'adams':
-                    methd = 'bdf'
-                    sl.set_integrator('vode', method = methd)
-                    solu = [init_condit]
-                    rt = [t0]
-                    sl.t = t0
-                else:
-                    solu = solu + [np.array([np.nan]*len(solu[-1]))]
-                    sl.t += dt
-                    rt = rt + [sl.t]
+    with open('DVODE_Errors.txt', 'w') as f:
+        with redirect_stdout(f):
+            with warnings.catch_warnings(record=True) as w:
+            # Cause all warnings to always be errors.
+                warnings.simplefilter('error')
+                while sl.successful() and sl.t < endtime:
+                    try:
+                        solu = solu + [sl.integrate(sl.t + dt)]
+                        rt = rt + [sl.t]
+                    except UserWarning:
+                        if methd == 'adams':
+                            methd = 'bdf'
+                            sl.set_integrator('vode', method = methd)
+                            solu = [init_condit]
+                            rt = [t0]
+                            sl.t = t0
+                        else:
+                            solu = solu + [np.array([np.nan]*len(solu[-1]))]
+                            sl.t += dt
+                            rt = rt + [sl.t]
     return np.array(solu),np.array(rt)
 
 
@@ -1201,13 +1241,17 @@ def find_full_sol(paramers,kvals,rvals,trio_outcomes,pair_outcomes, fix_prs, max
 
 ######### For estimating parameters:
 ##Compute value of logistic curve
-def logistic_fun(t,x0,r,C):
-    '''This is the solution to the logistic equations dx/dt = rx(1-x).
-    Dependency: numpy'''
-    return x0*(C+1)/(1+C*np.exp(-r*t))
+def make_logistic_fun(x0):
+    def logistic_fun(t,r,K):
+        '''This is the solution to the logistic equations dx/dt = rx(1-x).
+        Dependency: numpy'''
+        return x0*K/(x0+(K-x0)*np.exp(-r*t))
+    return logistic_fun
+
+
 
 ##Fit to logistic curve
-def logistic_fit(data_df):
+def logistic_fit(data_df, a = 0.01):
     '''fit a solution to the logistic equation to the data_df, removing the first data point for a better fit.
     Dependency: numpy, pandas, scipy.optimize'''
     x = np.meshgrid(np.arange(data_df.shape[0]),np.arange(data_df.shape[1]))[0].ravel()
@@ -1220,13 +1264,13 @@ def logistic_fit(data_df):
     x = x[~rmv_start]
     x1s = y_data[x==1]
     xzero = np.mean(x1s)
-    logi_f = curve_fit(logistic_fun,x,y_data,bounds=([xzero, -np.inf, -np.inf], [xzero+10**(-5), np.inf, np.inf]))
+    logi_f = curve_fit(make_logistic_fun(xzero),x,y_data,bounds=([ 0,a], [np.inf, np.inf]))
     r = logi_f[0][0]
-    k = np.mean(x1s)*(1 + logi_f[0][1])
+    k = logi_f[0][1]
     return [r,k]
 
 ##Fit to logistic curve
-def logistic_fit_nolag(data_df):
+def logistic_fit_nolag(data_df, a= 0.01):
     '''fit a solution to the logistic equation to the data_df.
     Dependency: numpy, pandas, scipy.optimize'''
     x = np.meshgrid(np.arange(data_df.shape[0]),np.arange(data_df.shape[1]))[0].ravel()
@@ -1235,9 +1279,9 @@ def logistic_fit_nolag(data_df):
     y_data = y_data[~rmv_pts]
     x = x[~rmv_pts]
     xzero = np.mean(y_data[x == 0])
-    logi_f = curve_fit(logistic_fun,x,y_data,bounds=([xzero, -np.inf, -np.inf], [xzero+10**(-5), np.inf, np.inf]))
+    logi_f = curve_fit(make_logistic_fun(xzero),x,y_data,bounds=([0, a], [np.inf, np.inf]))
     r = logi_f[0][0]
-    k = xzero*(1 + logi_f[0][1])
+    k = logi_f[0][1]
     return [r,k]
 
 ##Residules for model fit
@@ -1285,7 +1329,7 @@ def model_traj_res(a_vals,r_vals,data,stime,printer = False):
         return all_resids
 
 #fit 2 species model
-def model_fit_wrapper(pair_df, rvals, stime = 1, numtris = 1):
+def model_fit_wrapper(pair_df, rvals, stime = 1, numtris = 1,masterbound = np.inf):
     '''Parameter fitting using least_squares
     Dependency: pandas, numpy.random, scipy.optimize, model_traj_res'''
     ##First, let's cheat the parameters a little bit by deciding ourselves if we should have an
@@ -1300,35 +1344,36 @@ def model_fit_wrapper(pair_df, rvals, stime = 1, numtris = 1):
     ### compare. If unconstrained indicates extinction, then we probably have extinction.
     ### Is this going to make my runtime a lot longer? We shall find out. Or...maybe I do that
     ### for all pairs, because we could have a slow extinction I guess. Then check who fits best
+    mtd = 'trf'
     if extinction_1:#if we have species 1 extinction
         a0 = [rand() - 2.1, 2*rand() - 0.9]#[-1.5,-0.5]
-        fit_ext = least_squares(model_traj_res,a0,args = (rvals,pair_df,stime), bounds = ([-np.inf,-0.999],[-1.001,np.inf]), method = 'dogbox')
+        fit_ext = least_squares(model_traj_res,a0,args = (rvals,pair_df,stime), bounds = ([-masterbound,-0.999],[-1.001,masterbound]), method = mtd)
         for i in range(numtris):
             a0 = [rand() - 2.1, 2*rand() - 0.9]#[-1.5,-0.5]
-            fit_ext_t = least_squares(model_traj_res,a0,args = (rvals,pair_df,stime), bounds = ([-np.inf,-0.999],[-1.001,np.inf]), method = 'dogbox')
+            fit_ext_t = least_squares(model_traj_res,a0,args = (rvals,pair_df,stime), bounds = ([-masterbound,-0.999],[-1.001,masterbound]), method = mtd)
             if fit_ext_t.cost < fit_ext.cost:
                 fit_ext = fit_ext_t
     elif extinction_2:#if we have species 2 extinction
         a0 = [2*rand() - 0.9,rand()-2.1]
-        fit_ext = least_squares(model_traj_res,a0,args = (rvals,pair_df,stime), bounds = ([-0.999,-np.inf],[np.inf,-1.001]),  method = 'dogbox')
+        fit_ext = least_squares(model_traj_res,a0,args = (rvals,pair_df,stime), bounds = ([-0.999,-masterbound],[masterbound,-1.001]),  method = mtd)
         for i in range(numtris):
             a0 = [2*rand() - 0.9,rand()-2.1]
-            fit_ext_t = least_squares(model_traj_res,a0,args = (rvals,pair_df,stime), bounds = ([-0.999,-np.inf],[np.inf,-1.001]),  method = 'dogbox')
+            fit_ext_t = least_squares(model_traj_res,a0,args = (rvals,pair_df,stime), bounds = ([-0.999,-masterbound],[masterbound,-1.001]),  method = mtd)
             if fit_ext_t.cost < fit_ext.cost:
                 fit_ext = fit_ext_t
     else:#if we have no extinction
         a0 = [2*rand() - 0.9,2*rand() - 0.9]
-        fit_ext = least_squares(model_traj_res,a0,args = (rvals,pair_df,stime), bounds = ([-0.999,-0.999],[np.inf,np.inf]), method = 'dogbox')
+        fit_ext = least_squares(model_traj_res,a0,args = (rvals,pair_df,stime), bounds = ([-0.999,-0.999],[masterbound,masterbound]), method = mtd)
         for i in range(numtris):
             a0 = [2*rand() - 0.9,2*rand() - 0.9]
-            fit_ext_t = least_squares(model_traj_res,a0,args = (rvals,pair_df,stime), bounds = ([-0.999,-0.999],[np.inf,np.inf]), method = 'dogbox')
+            fit_ext_t = least_squares(model_traj_res,a0,args = (rvals,pair_df,stime), bounds = ([-0.999,-0.999],[masterbound,masterbound]), method = mtd)
             if fit_ext_t.cost < fit_ext.cost:
                 fit_ext = fit_ext_t
     a0 = [3*rand() - 1.5,3*rand() - 1.5]
-    fit_uncont = least_squares(model_traj_res,a0,args = (rvals,pair_df,stime), method = 'lm')#unconstrained fit
+    fit_uncont = least_squares(model_traj_res,a0,args = (rvals,pair_df,stime), method = mtd,bounds = ([-masterbound,-masterbound],[masterbound,masterbound]))#unconstrained fit
     for i in range(numtris):
         a0 = [3*rand() - 1.5,3*rand() - 1.5]
-        fit_uncont_t = least_squares(model_traj_res,a0,args = (rvals,pair_df,stime), method = 'lm')#unconstrained fit
+        fit_uncont_t = least_squares(model_traj_res,a0,args = (rvals,pair_df,stime), method = mtd,bounds = ([-masterbound,-masterbound],[masterbound,masterbound]))#unconstrained fit
         if fit_uncont_t.cost < fit_uncont.cost:
             fit_uncon = fit_uncont_t
     fit_extx = fit_ext.x.round(3)

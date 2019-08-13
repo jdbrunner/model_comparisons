@@ -11,6 +11,11 @@ from scipy.optimize import least_squares
 from scipy.integrate import ode
 from numpy.random import rand
 
+
+from contextlib import redirect_stdout
+
+
+
 from load_gore_results import *
 #Creates a DataFrame of the observed outcomes of the trio experiments (real_outs)
 #Creates a DataFrame of the observed outcomes of the pair experiment "by the eye test" (pair_outs_gore)
@@ -26,13 +31,6 @@ from load_gore_results import *
 #I need to correct for 0s in my pair timecourse data.
 
 
-
-# print('asses_parameters.py: estimating parameters')
-# from estimate_parameters import *
-#Creates a DataFrame with estimated single species parameters (mono_params_df)
-#Creates a dictionary with pair data scaled by carrying capacity (pair_data_scld)
-#Creates a dataframe with pair outcomes according to model fitting (pair_outs_fit)
-#Creates a dataframe of fit pairwise interaction parameters (interact_params)
 
 mono_params_df = pd.read_csv('mono_parameters.csv',index_col  = 0)
 pair_outs_fit = pd.read_csv('pair_outcomes.csv',index_col  = 0)

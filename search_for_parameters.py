@@ -11,6 +11,9 @@ from scipy.optimize import least_squares
 from scipy.integrate import ode
 from numpy.random import rand
 
+from contextlib import redirect_stdout
+
+
 from load_gore_results import *
 #Creates a DataFrame of the observed outcomes of the trio experiments (real_outs)
 #Creates a DataFrame of the observed outcomes of the pair experiment "by the eye test" (pair_outs_gore)
@@ -24,13 +27,30 @@ from load_gore_results import *
 #Creates a DataFrame of the trio experiment (only start/end) (trio_data)
 #Creates a DataFrame of the group experiment data (only start/end) (groups_data)
 
-from estimate_parameters import *
-#CL argument is whether or not to run in ``testing mode"
-#Creates a DataFrame with estimated single species parameters (mono_params_df)
-#Creates a dictionary with pair data scaled by carrying capacity (pair_data_scld)
-#Creates a dataframe with pair outcomes according to model fitting (pair_outs_fit)
-#Creates a dataframe of fit pairwise interaction parameters (interact_params)
 
+mono_params_df = pd.read_csv('mono_parameters.csv',index_col  = 0)
+pair_outs_fit = pd.read_csv('pair_outcomes.csv',index_col  = 0)
+interact_params = pd.read_csv('lotka_volterra_fitted.csv',index_col  = 0)
+
+air_outs_fit.index = [(iii.split("'")[1],iii.split("'")[3]) for iii in pair_outs_fit.index]
+
+
+for ii in pair_data.keys():
+    spes = ii.split('_')
+    for exper in pair_data[ii].index.levels[0]:
+        for il in range(len(pair_data[ii].loc[exper])-1):
+            if pair_data[ii].loc[exper].iloc[il,0] ==0:
+                pair_data[ii].loc[exper].iloc[il,0] = np.mean(pair_data[ii].loc[exper].iloc[il:,0])
+            if pair_data[ii].loc[exper].iloc[il,1] ==0:
+                pair_data[ii].loc[exper].iloc[il,1] = np.mean(pair_data[ii].loc[exper].iloc[il:,1])
+
+pair_data_scld = {}
+
+for ii in pair_data.keys():
+    pair_data_scld[ii] = pair_data[ii].copy()
+    spes = ii.split('_')
+    pair_data_scld[ii].loc[:,spes[0]] = pair_data_scld[ii].loc[:,spes[0]]/mono_params_df.loc[spes[0],'K']
+    pair_data_scld[ii].loc[:,spes[1]] = pair_data_scld[ii].loc[:,spes[1]]/mono_params_df.loc[spes[1],'K']
 
 
 
