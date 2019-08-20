@@ -442,10 +442,13 @@ def run_fake():
 from joblib import Parallel, delayed
 
 
-def go_for(ti):
+def go_for(ti, addto = False):
     '''Generate models for random outcomes for "ti" minutes. It's going
     go over time by less than 12 min'''
-    the_samples = list(np.load('outcome_samples.npy'))
+    if addto:
+        the_samples = list(np.load('outcome_samples.npy'))
+    else:
+        the_samples = []
 
     t1 = time.time()
     t = t1
@@ -464,7 +467,7 @@ if len(sys.argv) > 1:
     timetodoit = float(sys.argv[1])
 else:
     timetodoit = 10
-go_for(timetodoit)
+# go_for(timetodoit, addto = True)
 
 the_rands = list(np.load('outcome_samples.npy'))
 
@@ -472,12 +475,44 @@ import seaborn as sb
 
 
 
-fig, ax = plt.subplots(2,1,figsize=(15,10))
-sb.distplot(np.array(the_rands)[:,0], ax = ax[1], norm_hist = True)
-sb.distplot(np.array(the_rands)[:,1], ax = ax[0], norm_hist = True)
+minmets = min(np.array(the_rands)[:,0])
+maxmets = max(np.array(the_rands)[:,0])
 
-# ax[0].hist(np.array(the_rands)[:,1])
+mincov = min(np.array(the_rands)[:,1])
+
+
+met_mu = np.mean(np.array(the_rands)[:,0])
+met_sig = np.std(np.array(the_rands)[:,0])
+
+print('Mean Metabolite Number: ',met_mu)
+print('Std of Metabolite Number: ',met_sig)
+
+
+mincov_mu = np.mean(np.array(the_rands)[:,1])
+mincov_sig = np.std(np.array(the_rands)[:,1])
+
+print('Mean Coverage: ',mincov_mu)
+print('Std of Coverage: ',mincov_sig)
+
+import scipy.stats as stats
+
+x1 = np.linspace(met_mu - 3*met_sig, met_mu + 3*met_sig, 100)
+x2 = np.linspace(mincov_mu - 3*mincov_sig, mincov_mu + 3*mincov_sig, 100)
+
+
+fig, ax = plt.subplots(2,1,figsize=(15,10))
+sb.distplot(np.array(the_rands)[:,0], ax = ax[1], norm_hist = True, bins = np.arange(met_mu - 3*met_sig, met_mu + 3*met_sig), kde = False)
+ax[1].plot(x1, stats.norm.pdf(x1, met_mu, met_sig),color = '#4394D8')
+
+
+sb.distplot(np.array(the_rands)[:,1], ax = ax[0], norm_hist = True, bins = np.arange(mincov_mu - 3*mincov_sig, mincov_mu + 3*mincov_sig,(1/len(real_outs))), kde = False)
+ax[0].plot(x2, stats.norm.pdf(x2, mincov_mu, mincov_sig),color = '#4394D8')
+
+
+
 ax[1].set_title('Number of Metabolites Needed',fontsize = 15)
 ax[0].set_title('Coverage of Results',fontsize = 15)
 fig.text(0.7,0.89,'Number of random models: '+ str(len(the_rands)),fontsize = 13)
 fig.savefig('RandomModels')
+plt.close()
+# plt.show()
