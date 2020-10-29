@@ -53,7 +53,8 @@ outcome = pd.Series(index = real_outs.index)
 
 
 for i in outcome.index:
-    outcome.loc[i] = '-'.join(list(np.array(i)[np.where(*real_outs.loc[[i]].values.astype('int').astype('bool'))]))
+    strval = '-'.join(list(np.array(i)[np.where(*real_outs.loc[[i]].values.astype('int').astype('bool'))]))
+    outcome.loc[[i]] = strval
 
 real_outs.loc[:,'Observed'] = outcome
 real_outs.drop(['First','Second','Third'], axis = 1, inplace = True)

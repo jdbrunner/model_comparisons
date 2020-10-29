@@ -626,7 +626,7 @@ def test_params_LV(interacts, kvals, rvals, trio_observation, pair_observation, 
     #add the gLV predicted outcomes to the DF with real outcomes in it.
     glv = pd.Series(index = real_outcomes.index)
     for i in glv.index:
-        glv.loc[i] = tio_predictions_summ[i]
+        glv.loc[[i]] = tio_predictions_summ[i]
 
 
     all_outcomes = real_outcomes
@@ -650,7 +650,7 @@ def test_params_LV(interacts, kvals, rvals, trio_observation, pair_observation, 
 
     for ii in lv_pre.index:
         tf = np.array([interacts2.loc[ii[0],ii[1]],interacts2.loc[ii[1],ii[0]]]) > -1
-        lv_pre.loc[ii] = '-'.join(np.array(ii)[np.where(tf)])
+        lv_pre.loc[[ii]] = '-'.join(np.array(ii)[np.where(tf)])
 
     pair_outcomes.loc[:,'LVPrediction'] = lv_pre
 

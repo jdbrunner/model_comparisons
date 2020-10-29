@@ -103,39 +103,39 @@ def run_trio_mod(t,y,parms):
 def count_it(pair_outcome_df,trio_outcome_df, k1vs, dvs):
 
     ##### Figure out what pathways we need for pairs
-    winner_nocross = pd.Series(index = pair_outcome_df.index)
+    winner_nocross = pd.Series(index = pair_outcome_df.index,dtype = 'object')
     for pr in pair_outcome_df.index:
         winner = pr[np.argmax([k1vs[pr[0]]/dvs[pr[0]],k1vs[pr[1]]/dvs[pr[1]]])]
-        winner_nocross[pr] = winner
+        winner_nocross[[pr]] = winner
 
 
     pair_task = pair_outcome_df.copy()
     pair_task['NoXtalk'] = winner_nocross
     # pair_task
-    needs_p = pd.Series(index = pair_task.index)
+    needs_p = pd.Series(index = pair_task.index,dtype = 'str')
     for pr in pair_task.index:
         obse = pair_task.loc[[pr],'Observed'].values[0]
         nox = pair_task.loc[[pr],'NoXtalk'].values[0]
         if  obse == nox:
-            needs_p[pr] = 'None' #needs nothing
+            needs_p[[pr]] = 'None' #needs nothing
         elif (pr[0] in nox) and ('-' in obse):
-            needs_p[pr] = pr[0] + '_XF_' + pr[1] #needs cross feeding
+            needs_p[[pr]] = pr[0] + '_XF_' + pr[1] #needs cross feeding
         elif (pr[1] in nox) and ('-' in obse):
-            needs_p[pr] = pr[1] + '_XF_' + pr[0] #needs cross feeding
+            needs_p[[pr]] = pr[1] + '_XF_' + pr[0] #needs cross feeding
         elif pr[0] == nox and pr[1] == obse:
-            needs_p[pr] = pr[1] + '_XP_' + pr[0] #needs cross poisoning
+            needs_p[[pr]] = pr[1] + '_XP_' + pr[0] #needs cross poisoning
         else:
-            needs_p[pr] = pr[0] + '_XP_' + pr[1] #needs cross poisoning
+            needs_p[[pr]] = pr[0] + '_XP_' + pr[1] #needs cross poisoning
 
 
     pair_task['Needs'] = needs_p
 
 
     pair_models = pd.DataFrame(index = pair_task.index)
-    acol = pd.Series(index = pair_models.index)
-    bcol = pd.Series(index = pair_models.index)
-    k12col = pd.Series(index = pair_models.index)
-    k22col = pd.Series(index = pair_models.index)
+    acol = pd.Series(index = pair_models.index,dtype = 'float')
+    bcol = pd.Series(index = pair_models.index,dtype = 'float')
+    k12col = pd.Series(index = pair_models.index,dtype = 'float')
+    k22col = pd.Series(index = pair_models.index,dtype = 'float')
     #, columns = ['a','b','k12','k22'])
     for pr in pair_models.index:
         d1 = dvals[pr[0]]
@@ -177,27 +177,27 @@ def count_it(pair_outcome_df,trio_outcome_df, k1vs, dvs):
 
     trio_model_outcomes = trio_outcome_df.copy()
     trios_unadjusted = pd.DataFrame(index = trio_outcome_df.index)
-    a1col = pd.Series(index = trio_outcome_df.index)
-    a2col = pd.Series(index = trio_outcome_df.index)
-    a3col = pd.Series(index = trio_outcome_df.index)
-    b1col = pd.Series(index = trio_outcome_df.index)
-    b2col = pd.Series(index = trio_outcome_df.index)
-    b3col = pd.Series(index = trio_outcome_df.index)
+    a1col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
+    a2col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
+    a3col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
+    b1col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
+    b2col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
+    b3col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
 
-    k11col = pd.Series(index = trio_outcome_df.index)
-    k21col = pd.Series(index = trio_outcome_df.index)
-    k31col = pd.Series(index = trio_outcome_df.index)
+    k11col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
+    k21col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
+    k31col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
 
-    d1col = pd.Series(index = trio_outcome_df.index)
-    d2col = pd.Series(index = trio_outcome_df.index)
-    d3col = pd.Series(index = trio_outcome_df.index)
+    d1col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
+    d2col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
+    d3col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
 
-    k12col = pd.Series(index = trio_outcome_df.index)
-    k22col = pd.Series(index = trio_outcome_df.index)
-    k33col = pd.Series(index = trio_outcome_df.index)
-    k13col = pd.Series(index = trio_outcome_df.index)
-    k24col = pd.Series(index = trio_outcome_df.index)
-    k34col = pd.Series(index = trio_outcome_df.index)
+    k12col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
+    k22col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
+    k33col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
+    k13col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
+    k24col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
+    k34col = pd.Series(index = trio_outcome_df.index,dtype = 'float')
 
     for tr in trios_unadjusted.index:
         k11col[tr] = k1vals[tr[0]]
@@ -273,22 +273,22 @@ def count_it(pair_outcome_df,trio_outcome_df, k1vs, dvs):
 
 
 
-    trio_model_outcomes_unadj = pd.Series(index = trio_outcome_df.index)
+    trio_model_outcomes_unadj = pd.Series(index = trio_outcome_df.index,dtype = 'float')
 
     for tr in trio_outcome_df.index:
         tr_mod = ode(run_trio_mod_unadj)
         tr_mod.set_initial_value([1,1,1,1,0,0,0],0).set_f_params(list(trios_unadjusted.loc[[tr]].values[0]))
         while tr_mod.successful() and tr_mod.t < 500:
             result = tr_mod.integrate(tr_mod.t + 1)
-        trio_model_outcomes_unadj[tr] = np.array(tr)[result[:3].round(8).astype('bool')]
+        trio_model_outcomes_unadj[[tr]] = [np.array(tr)[result[:3].round(8).astype('bool')]]
 
 
 
 
 
     compare_pt = pd.DataFrame(index = trio_outcome_df.index, columns = ['PairPaths','Trio_Res','PP_Res','ABS_Change','CanFix'])
-    compare_pt.Trio_Res = trio_outcome_df.Observed
-    compare_pt.PP_Res = trio_model_outcomes_unadj
+    compare_pt.Trio_Res = trio_outcome_df.Observed  #Observed trio experiment result
+    compare_pt.PP_Res = trio_model_outcomes_unadj #Trio experiment result as implied by pair models
     # compare_pt.TrioPaths = trio_task.Needs
     ppaths = pd.Series(index = compare_pt.index, dtype = object)
 
@@ -300,17 +300,17 @@ def count_it(pair_outcome_df,trio_outcome_df, k1vs, dvs):
                     ptli += [pair_task.loc[[pr],'Needs'].values[0]]
         ppaths[tr] = ptli
 
-    compare_pt.PairPaths = ppaths
+    compare_pt.PairPaths = ppaths #cross talk required to make pair model
 
     abs_chng  = pd.Series(index = trio_outcome_df.index,dtype = object)
-    canfx = pd.Series(index = trio_outcome_df.index)
+    canfx = pd.Series(index = trio_outcome_df.index,dtype = 'bool')
     for tr in compare_pt.index:
-        ch = [compare_pt.Trio_Res[tr] + '_XP_' + sp for sp in compare_pt.PP_Res[tr] if sp not in compare_pt.Trio_Res[tr].split('-')] + ['-'.join(compare_pt.PP_Res[tr]) + '_XF_' + sp for sp in compare_pt.Trio_Res[tr].split('-') if sp not in compare_pt.PP_Res[tr]]
-        abs_chng[tr] = ch
-        if all([len(p.split('-')) == 2 for p in ch]):
-            canfx[tr] = all([any([all([sps in pway for sps in pt.split('_')[0].split('-')]) for pway in compare_pt.PairPaths[tr]]) for pt in ch])
+        ch = [compare_pt.Trio_Res[[tr]].values[0] + '_XP_' + sp for sp in compare_pt.PP_Res[[tr]].values[0] if sp not in compare_pt.Trio_Res[[tr]].values[0].split('-')] + ['-'.join(compare_pt.PP_Res[[tr]].values[0]) + '_XF_' + sp for sp in compare_pt.Trio_Res[[tr]].values[0].split('-') if sp not in compare_pt.PP_Res[[tr]].values[0]]
+        abs_chng[[tr]] = [ch]
+        if all([len(p.split('_')[0].split('-')) == 2 for p in ch]):
+            canfx[[tr]] = all([any([all([sps in pway for sps in pt.split('_')[0].split('-')]) for pway in compare_pt.PairPaths[[tr]].values[0]]) for pt in ch])
         else:
-            canfx[tr] = False
+            canfx[[tr]] = False
 
 
     compare_pt.ABS_Change = abs_chng
@@ -320,17 +320,16 @@ def count_it(pair_outcome_df,trio_outcome_df, k1vs, dvs):
 
     all_x_targets = pd.Series([[]]*len(all_by_prods),index = all_by_prods, dtype = object)
 
-
     for pth in [pth for pth in pair_task.Needs if pth != 'None']:
         pthspl = pth.split('_')
         all_x_targets.loc[pthspl[0]] = all_x_targets.loc[pthspl[0]] + [pthspl[1]+'_'+pthspl[2]]
 
-    for tr in [tro for tro in compare_pt.index if compare_pt.CanFix[tro]]:
-        for pthneeded in compare_pt.ABS_Change[tr]:
+    for tr in [tro for tro in compare_pt.index if compare_pt.CanFix[[tro]].values[0]]:
+        for pthneeded in compare_pt.ABS_Change[[tr]].values[0]:
             spl1 = pthneeded.split('_')
             spl2 = spl1[0].split('-')
             ##What it is the 2ary path
-            pth = [pway for pway in compare_pt.PairPaths[tr] if all([sps in pway for sps in spl2])][0]
+            pth = [pway for pway in compare_pt.PairPaths[[tr]].values[0] if all([sps in pway for sps in spl2])][0]
             spl3 = pth.split('_')
             all_x_targets.loc[spl3[0]] = all_x_targets.loc[spl3[0]] + [spl3[1]+'-'+spl3[2]+'_'+spl1[1]+'_'+spl1[2]]
             all_x_targets.loc[pth] = all_x_targets.loc[pth] + [spl1[1]+'_'+spl1[2]]
@@ -367,18 +366,28 @@ def minitmaybe(pair_df,trio_df,dvals, order):
     return num_u,perc_cov,score,order
 
 
-realdat = False
+realdat = True
 if realdat:
+
+    k1vals = dict(zip(winorder,k1opts))
+
+    model0 = count_it(pair_outs_gore,real_outs,k1vals,dvals)
+
+    print(model0[0])
+
+    print(len(np.unique([set(li) for li in model0[1].values if li != []])))
+
     do_it = minitmaybe(pair_outs_gore,real_outs,dvals,winorder)
 
+    print(do_it)
 
-    k1vals = dict(zip(do_it[1],k1opts))
+    k1vals = dict(zip(do_it[3],k1opts))
 
     model = count_it(pair_outs_gore,real_outs,k1vals,dvals)
 
     plt_net = pd.DataFrame(columns =['Source','Target','Wght','Stype','Qual'])
 
-    for x in do_it[1]:
+    for x in do_it[3]:
         plt_net = plt_net.append(pd.DataFrame([['y1',x,1.0,'R1',1.0]],columns = plt_net.columns),ignore_index = True)
         plt_net = plt_net.append(pd.DataFrame([[x,'y1',-1.0,'R1',-1.0]],columns = plt_net.columns),ignore_index = True)
 
@@ -410,12 +419,12 @@ if realdat:
 
 
 def run_fake():
-    pouts = pd.Series(index = pair_outs_gore.index)
+    pouts = pd.Series(index = pair_outs_gore.index,dtype = 'object')
     for pr in pouts.index:
         pouts[pr] = [pr[0] in pair_outs_gore['Observed'][pr], pr[1] in pair_outs_gore['Observed'][pr]]
 
 
-    touts = pd.Series(index = real_outs.index)
+    touts = pd.Series(index = real_outs.index ,dtype = 'object')
     for tr in touts.index:
         touts[tr] = [tr[0] in real_outs['Observed'][tr], tr[1] in real_outs['Observed'][tr], tr[2] in real_outs['Observed'][tr]]
 
@@ -462,57 +471,59 @@ def go_for(ti, addto = False):
 
     return
 
-import sys
-if len(sys.argv) > 1:
-    timetodoit = float(sys.argv[1])
-else:
-    timetodoit = 10
-# go_for(timetodoit, addto = True)
+testfake = False
+if testfake:
+    import sys
+    if len(sys.argv) > 1:
+        timetodoit = float(sys.argv[1])
+    else:
+        timetodoit = 10
+    # go_for(timetodoit, addto = True)
 
-the_rands = list(np.load('outcome_samples.npy'))
+    the_rands = list(np.load('outcome_samples.npy'))
 
-import seaborn as sb
-
-
-
-minmets = min(np.array(the_rands)[:,0])
-maxmets = max(np.array(the_rands)[:,0])
-
-mincov = min(np.array(the_rands)[:,1])
-
-
-met_mu = np.mean(np.array(the_rands)[:,0])
-met_sig = np.std(np.array(the_rands)[:,0])
-
-print('Mean Metabolite Number: ',met_mu)
-print('Std of Metabolite Number: ',met_sig)
-
-
-mincov_mu = np.mean(np.array(the_rands)[:,1])
-mincov_sig = np.std(np.array(the_rands)[:,1])
-
-print('Mean Coverage: ',mincov_mu)
-print('Std of Coverage: ',mincov_sig)
-
-import scipy.stats as stats
-
-x1 = np.linspace(met_mu - 3*met_sig, met_mu + 3*met_sig, 100)
-x2 = np.linspace(mincov_mu - 3*mincov_sig, mincov_mu + 3*mincov_sig, 100)
-
-
-fig, ax = plt.subplots(2,1,figsize=(15,10))
-sb.distplot(np.array(the_rands)[:,0], ax = ax[1], norm_hist = True, bins = np.arange(met_mu - 3*met_sig, met_mu + 3*met_sig), kde = False)
-ax[1].plot(x1, stats.norm.pdf(x1, met_mu, met_sig),color = '#4394D8')
-
-
-sb.distplot(np.array(the_rands)[:,1], ax = ax[0], norm_hist = True, bins = np.arange(mincov_mu - 3*mincov_sig, mincov_mu + 3*mincov_sig,(1/len(real_outs))), kde = False)
-ax[0].plot(x2, stats.norm.pdf(x2, mincov_mu, mincov_sig),color = '#4394D8')
+    import seaborn as sb
 
 
 
-ax[1].set_title('Number of Metabolites Needed',fontsize = 15)
-ax[0].set_title('Coverage of Results',fontsize = 15)
-fig.text(0.7,0.89,'Number of random models: '+ str(len(the_rands)),fontsize = 13)
-fig.savefig('RandomModels')
-plt.close()
-# plt.show()
+    minmets = min(np.array(the_rands)[:,0])
+    maxmets = max(np.array(the_rands)[:,0])
+
+    mincov = min(np.array(the_rands)[:,1])
+
+
+    met_mu = np.mean(np.array(the_rands)[:,0])
+    met_sig = np.std(np.array(the_rands)[:,0])
+
+    print('Mean Metabolite Number: ',met_mu)
+    print('Std of Metabolite Number: ',met_sig)
+
+
+    mincov_mu = np.mean(np.array(the_rands)[:,1])
+    mincov_sig = np.std(np.array(the_rands)[:,1])
+
+    print('Mean Coverage: ',mincov_mu)
+    print('Std of Coverage: ',mincov_sig)
+
+    import scipy.stats as stats
+
+    x1 = np.linspace(met_mu - 3*met_sig, met_mu + 3*met_sig, 100)
+    x2 = np.linspace(mincov_mu - 3*mincov_sig, mincov_mu + 3*mincov_sig, 100)
+
+
+    fig, ax = plt.subplots(2,1,figsize=(15,10))
+    sb.distplot(np.array(the_rands)[:,0], ax = ax[1], norm_hist = True, bins = np.arange(met_mu - 3*met_sig, met_mu + 3*met_sig), kde = False)
+    ax[1].plot(x1, stats.norm.pdf(x1, met_mu, met_sig),color = '#4394D8')
+
+
+    sb.distplot(np.array(the_rands)[:,1], ax = ax[0], norm_hist = True, bins = np.arange(mincov_mu - 3*mincov_sig, mincov_mu + 3*mincov_sig,(1/len(real_outs))), kde = False)
+    ax[0].plot(x2, stats.norm.pdf(x2, mincov_mu, mincov_sig),color = '#4394D8')
+
+
+
+    ax[1].set_title('Number of Metabolites Needed',fontsize = 15)
+    ax[0].set_title('Coverage of Results',fontsize = 15)
+    fig.text(0.7,0.89,'Number of random models: '+ str(len(the_rands)),fontsize = 13)
+    fig.savefig('RandomModels')
+    plt.close()
+    # plt.show()

@@ -61,16 +61,16 @@ dvals = {'Ea':dea, 'Pa':dpa, 'Pch':dpch, 'Pci':dpci, 'Pf':dpf, 'Pp':dpp, 'Pv':dp
 
 #now add whatever cross-feeding or cross poisoning we need.
 ##Start by figuring out current outcomes
-winner_nocross = pd.Series(index = pair_outs_gore.index)
+winner_nocross = pd.Series(index = pair_outs_gore.index, dtype = 'float')
 for pr in pair_outs_gore.index:
     winner = pr[np.argmax([k1vals[pr[0]]/dvals[pr[0]],k1vals[pr[1]]/dvals[pr[1]]])]
-    winner_nocross[pr] = winner
+    winner_nocross[[pr]] = winner
 
 
 pair_task = pair_outs_gore.copy()
 pair_task['NoXtalk'] = winner_nocross
 # pair_task
-needs = pd.Series(index = pair_task.index)
+needs = pd.Series(index = pair_task.index, dtype = 'float')
 for pr in pair_task.index:
     if pair_task.loc[[pr],'Observed'].values[0] == pair_task.loc[[pr],'NoXtalk'].values[0]:
         needs[pr] = 0 #needs nothing
@@ -93,11 +93,11 @@ pair_task['Needs'] = needs
 # if 1 is initial survivor then a = 1, b=0, k12 = 0, k22>(1/(f1-dstd1/k11))(d2 - k21 d1/k11)
 # if 2 is initial survivor then a = 0, b=1, k22 = 0, k12>(1/(f1-dstd2/k21))(d1 - k11 d2/k21)
 
-pair_models = pd.DataFrame(index = pair_task.index)
-acol = pd.Series(index = pair_models.index)
-bcol = pd.Series(index = pair_models.index)
-k12col = pd.Series(index = pair_models.index)
-k22col = pd.Series(index = pair_models.index)
+pair_models = pd.DataFrame(index = pair_task.index, dtype = 'float')
+acol = pd.Series(index = pair_models.index, dtype = 'float')
+bcol = pd.Series(index = pair_models.index, dtype = 'float')
+k12col = pd.Series(index = pair_models.index, dtype = 'float')
+k22col = pd.Series(index = pair_models.index, dtype = 'float')
 #, columns = ['a','b','k12','k22'])
 for pr in pair_models.index:
     if pair_task.loc[[pr],'Needs'].values[0]:
@@ -152,14 +152,15 @@ def run_pair_mod(t,y,pars):
     dy2dt = a*k11*x1*y1 + b*k21*x2*y1 - dst*y2 - k12*x1*y2 - k22*x2*y2
     return [dx1dt,dx2dt,dy1dt,dy2dt]
 
-pair_model_outcomes = pd.Series(index = pair_task.index)
+pair_model_outcomes = pd.Series(index = pair_task.index, dtype = 'float')
+
 
 for pr in pair_task.index:
     pair_mod = ode(run_pair_mod)
     pair_mod.set_initial_value([1,1,1,0],0).set_f_params([k1vals[pr[0]],k1vals[pr[1]],dvals[pr[0]],dvals[pr[1]]] + list(pair_models.loc[[pr]].values[0]))
     while pair_mod.successful() and pair_mod.t < 100:
         result = pair_mod.integrate(pair_mod.t + 1)
-    pair_model_outcomes[pr] = np.array(pr)[result[:2].round(10).astype('bool')]
+    pair_model_outcomes[[pr]] = [np.array(pr)[result[:2].round(10).astype('bool')]]
 
 pair_task['Xtalk'] = pair_model_outcomes
 # pair_task#it worked
@@ -168,7 +169,7 @@ pair_task['Xtalk'] = pair_model_outcomes
 
 
 
-model_net = pd.DataFrame(columns =['Source','Target','Wght','Stype','Qual'])
+model_net = pd.DataFrame(columns =['Source','Target','Wght','Stype','Qual'], dtype = 'float')
 for i in indx:
     model_net = model_net.append(pd.DataFrame([[i,'Y1',-k1vals[i],'S',-1],['Y1',i,k1vals[i],'R1',1]],columns = model_net.columns))
 
@@ -201,28 +202,28 @@ for pr in pair_models.index:
 # dy3/dt = a2*k11*x1*y1 + b2*k31*x3*y1 - dst*y3 - k13*x1*y3 - k33*x3*y3
 # dy4/dt = a3*k21*x2*y1 + b3*k31*x3*y1 - dst*y4 - k24*x2*y4 - k34*x3*y4
 trio_model_outcomes = real_outs.copy()
-trios_unadjusted = pd.DataFrame(index = real_outs.index)
-a1col = pd.Series(index = real_outs.index)
-a2col = pd.Series(index = real_outs.index)
-a3col = pd.Series(index = real_outs.index)
-b1col = pd.Series(index = real_outs.index)
-b2col = pd.Series(index = real_outs.index)
-b3col = pd.Series(index = real_outs.index)
+trios_unadjusted = pd.DataFrame(index = real_outs.index, dtype = 'float')
+a1col = pd.Series(index = real_outs.index, dtype = 'float')
+a2col = pd.Series(index = real_outs.index, dtype = 'float')
+a3col = pd.Series(index = real_outs.index, dtype = 'float')
+b1col = pd.Series(index = real_outs.index, dtype = 'float')
+b2col = pd.Series(index = real_outs.index, dtype = 'float')
+b3col = pd.Series(index = real_outs.index, dtype = 'float')
 
-k11col = pd.Series(index = real_outs.index)
-k21col = pd.Series(index = real_outs.index)
-k31col = pd.Series(index = real_outs.index)
+k11col = pd.Series(index = real_outs.index, dtype = 'float')
+k21col = pd.Series(index = real_outs.index, dtype = 'float')
+k31col = pd.Series(index = real_outs.index, dtype = 'float')
 
-d1col = pd.Series(index = real_outs.index)
-d2col = pd.Series(index = real_outs.index)
-d3col = pd.Series(index = real_outs.index)
+d1col = pd.Series(index = real_outs.index, dtype = 'float')
+d2col = pd.Series(index = real_outs.index, dtype = 'float')
+d3col = pd.Series(index = real_outs.index, dtype = 'float')
 
-k12col = pd.Series(index = real_outs.index)
-k22col = pd.Series(index = real_outs.index)
-k33col = pd.Series(index = real_outs.index)
-k13col = pd.Series(index = real_outs.index)
-k24col = pd.Series(index = real_outs.index)
-k34col = pd.Series(index = real_outs.index)
+k12col = pd.Series(index = real_outs.index, dtype = 'float')
+k22col = pd.Series(index = real_outs.index, dtype = 'float')
+k33col = pd.Series(index = real_outs.index, dtype = 'float')
+k13col = pd.Series(index = real_outs.index, dtype = 'float')
+k24col = pd.Series(index = real_outs.index, dtype = 'float')
+k34col = pd.Series(index = real_outs.index, dtype = 'float')
 
 for tr in trios_unadjusted.index:
     k11col[tr] = k1vals[tr[0]]
@@ -308,19 +309,19 @@ def run_trio_mod_unadj(t,y,parms):
 
 
 
-trio_model_outcomes_unadj = pd.Series(index = real_outs.index)
+trio_model_outcomes_unadj = pd.Series(index = real_outs.index, dtype = 'float')
 
 for tr in real_outs.index:
     tr_mod = ode(run_trio_mod_unadj)
     tr_mod.set_initial_value([1,1,1,1,0,0,0],0).set_f_params(list(trios_unadjusted.loc[[tr]].values[0]))
     while tr_mod.successful() and tr_mod.t < 100:
         result = tr_mod.integrate(tr_mod.t + 1)
-    trio_model_outcomes_unadj[tr] = np.array(tr)[result[:3].round(10).astype('bool')]
+    trio_model_outcomes_unadj[[tr]] = [np.array(tr)[result[:3].round(10).astype('bool')]]
 
 
 
 trio_model_outcomes['NoAddedXtalk'] = trio_model_outcomes_unadj
-trio_tasks = pd.Series(index = trio_model_outcomes.index)
+trio_tasks = pd.Series(index = trio_model_outcomes.index, dtype = 'float')
 for tr in trio_model_outcomes.index:
     obsv = (tr[0] in trio_model_outcomes.loc[[tr],'Observed'].values[0],tr[1] in trio_model_outcomes.loc[[tr],'Observed'].values[0],tr[2] in trio_model_outcomes.loc[[tr],'Observed'].values[0])
     noxt = (tr[0] in trio_model_outcomes.loc[[tr],'NoAddedXtalk'].values[0],tr[1] in trio_model_outcomes.loc[[tr],'NoAddedXtalk'].values[0],tr[2] in trio_model_outcomes.loc[[tr],'NoAddedXtalk'].values[0])
@@ -376,13 +377,13 @@ tsk_counts = pd.Series([sum(trio_tasks.values == ii) for ii in [13,23,12,22,32,1
 trio_models = trios_unadjusted.copy()
 
 # trio_model_outcomes
-c1col = pd.Series(index = real_outs.index)
-c2col = pd.Series(index = real_outs.index)
-c3col = pd.Series(index = real_outs.index)
+c1col = pd.Series(index = real_outs.index, dtype = 'float')
+c2col = pd.Series(index = real_outs.index, dtype = 'float')
+c3col = pd.Series(index = real_outs.index, dtype = 'float')
 
-psi15col = pd.Series(index = real_outs.index)
-psi25col = pd.Series(index = real_outs.index)
-psi35col = pd.Series(index = real_outs.index)
+psi15col = pd.Series(index = real_outs.index, dtype = 'float')
+psi25col = pd.Series(index = real_outs.index, dtype = 'float')
+psi35col = pd.Series(index = real_outs.index, dtype = 'float')
 
 
 
@@ -425,20 +426,20 @@ def run_trio_mod(t,y,parms):
     dy5dt = c3*k12*x1*y2 + c2*k13*x1*y3 + c3*k22*x2*y2 + c1*k24*x2*y4 + c2*k33*x3*y3 + c1*k34*x3*y4 - 0.1*dst*y5 - psi15*x1*y5 - psi25*x2*y5 - psi35*x3*y5
     return [dx1dt,dx2dt,dx3dt,dy1dt,dy2dt,dy3dt,dy4dt,dy5dt]
 
-trio_model_outcomes_xtalk = pd.Series(index = real_outs.index)
+trio_model_outcomes_xtalk = pd.Series(index = real_outs.index, dtype = 'float')
 
 for tr in real_outs.index:
     tr_mod = ode(run_trio_mod)
     tr_mod.set_initial_value([1,1,1,1,0,0,0,0],0).set_f_params(list(trio_models.loc[[tr]].values[0]))
     while tr_mod.successful() and tr_mod.t < 100:
         result = tr_mod.integrate(tr_mod.t + 1)
-    trio_model_outcomes_xtalk[tr] = np.array(tr)[result[:3].round(10).astype('bool')]
+    trio_model_outcomes_xtalk[[tr]] = [np.array(tr)[result[:3].round(10).astype('bool')]]
 
 
 trio_model_outcomes['WithXtalk'] = trio_model_outcomes_xtalk
 
 
-trio_worked = pd.Series(index = trio_model_outcomes.index)
+trio_worked = pd.Series(index = trio_model_outcomes.index, dtype = 'float')
 for tr in trio_model_outcomes.index:
     obsv = (tr[0] in trio_model_outcomes.loc[[tr],'Observed'].values[0],tr[1] in trio_model_outcomes.loc[[tr],'Observed'].values[0],tr[2] in trio_model_outcomes.loc[[tr],'Observed'].values[0])
     noxt = (tr[0] in trio_model_outcomes.loc[[tr],'WithXtalk'].values[0],tr[1] in trio_model_outcomes.loc[[tr],'WithXtalk'].values[0],tr[2] in trio_model_outcomes.loc[[tr],'WithXtalk'].values[0])
@@ -514,7 +515,9 @@ for tri in trio_models.index:
     model_net = model_net.append(pd.DataFrame([[tri[0],'Y'+str(j), x1toy, 'S',np.sign(x1toy)],[tri[1],'Y'+str(j), x2toy, 'S',np.sign(x2toy)],[tri[2],'Y'+str(j), x3toy, 'S',np.sign(x3toy)],['Y' + str(j),tri[0],trio_models.loc[[tri],'psi15'][0],'R3',np.sign(trio_models.loc[[tri],'psi15'][0])],['Y' + str(j),tri[1],trio_models.loc[[tri],'psi25'][0],'R3',np.sign(trio_models.loc[[tri],'psi25'][0])],['Y' + str(j),tri[2],trio_models.loc[[tri],'psi35'][0],'R3',np.sign(trio_models.loc[[tri],'psi35'][0])]],columns = model_net.columns))
     j += 1
 
+print(sum(["Y" in s for s in model_net.loc[:,'Source'].unique()]))
 
+# model_net[model_net.Wght != 0].to_csv('min_met_network.csv')
 
 
 sig_chaing = pd.DataFrame([['Pp','S1',k1vals['Pp'],'S',1],['Sm','S1',k1vals['Pp'],'S',-1],['Sm','Y' + str(j+1),10.0,'S',-1],['Sm','Y' + str(j),10.0,'S',1],['Pv','Y' + str(j),10.0,'S',-1],['Pv','Y' + str(j+1),10.0,'S',1],['Y'+str(j),'Pv',10.0,'R3',1],['Y'+str(j+1),'Sm',10.0,'R3',1],['S1','Sm',1,'Sg',0]],columns = model_net.columns)
@@ -537,13 +540,13 @@ model_net[model_net.Wght != 0].to_csv('modelnet.csv')
 
 
 
-print_pairm = pd.DataFrame(columns = ['Sp1','Sp2','k12','k22'], index = pair_models.index)
+print_pairm = pd.DataFrame(columns = ['Sp1','Sp2','k12','k22'], index = pair_models.index, dtype = 'float')
 
 print_pairm.loc[:,['k12','k22']]= pair_models.loc[:,['k12','k22']].round(3)
 
 for ind in print_pairm.index:
-    print_pairm.loc[ind,'Sp1'] = ind[0]
-    print_pairm.loc[ind,'Sp2'] = ind[1]
+    print_pairm.loc[[ind],'Sp1'] = ind[0]
+    print_pairm.loc[[ind],'Sp2'] = ind[1]
 
 
 
@@ -557,17 +560,17 @@ print_pairm.to_csv('pair_metabolites.csv')
 
 
 
-k1s = pd.DataFrame.from_dict(k1vals, orient = 'index')
+k1s = pd.DataFrame.from_dict(k1vals, orient = 'index', dtype = 'float')
 
 k1s.columns = ['$k_{1i}$']
 k1s.round(3).T.to_csv('k1vals.csv')
 
-d1s = pd.DataFrame.from_dict(dvals, orient = 'index')
+d1s = pd.DataFrame.from_dict(dvals, orient = 'index', dtype = 'float')
 d1s.columns = ['$d_i$']
 d1s.round(3).T.to_csv('dvals.csv')
 
 
-print_trios = pd.DataFrame(columns = ['Sp1','Sp2','Sp3','$\psi_{t}^{Sp1}$','$\psi_{t}^{Sp2}$','$\psi_{t}^{Sp3}$'], index = [' \& '.join(ind) for ind in trio_models.index])
+print_trios = pd.DataFrame(columns = ['Sp1','Sp2','Sp3','$\psi_{t}^{Sp1}$','$\psi_{t}^{Sp2}$','$\psi_{t}^{Sp3}$'], index = [' \& '.join(ind) for ind in trio_models.index], dtype = 'float')
 
 
 for ind in trio_models.index:
